@@ -108,9 +108,10 @@ def audio_funct(directory):
 
 #### PLAYLIST PICKER ####
 def playlist_picker(song_paths, bnuy_path, shuffl, directory):
-  os.system('cls' if os.name == 'nt' else 'clear')
+
   while True:
     try:
+      os.system('cls' if os.name == 'nt' else 'clear')
       counter = 0
       for num, (name, _, _) in song_paths.items():
         print(f"{num}) {name}")
@@ -141,11 +142,12 @@ def playlist_picker(song_paths, bnuy_path, shuffl, directory):
       countr = 0
 
       for song in os.listdir(path):
-        name, ext = os.path.splitext(song)
+        filename, ext = os.path.splitext(song)
+
         if ext in valid_ext:
           filepath = os.path.join(path, song)
           countr += 1
-          print(f"{countr}) {song}")
+          print(f"{countr}) {filename}")
           tmp_song[countr] = filepath
 
       tmp_boolean = True
@@ -156,19 +158,18 @@ def playlist_picker(song_paths, bnuy_path, shuffl, directory):
 3) Back
 
 >>> """))
+        os.system('cls' if os.name == 'nt' else 'clear')
 
         if choice == 1: break
 
-        if choice == 2:
+        elif choice == 2:
           choice = int(input("""Enter the num of the song you'd like
 
 >>> """))
           path = tmp_song[choice]
           break
 
-        elif choice == 3:
-          tmp_boolean = False
-          continue
+        elif choice == 3: raise FileNotFoundError
 
         else: raise ValueError
 
@@ -178,9 +179,12 @@ def playlist_picker(song_paths, bnuy_path, shuffl, directory):
         player = ["mpv", path, f"--input-conf={directory}", "--profile=fast", "--no-video", "--shuffle"]
 
       return choice, name, function, path, player
+
     except(KeyError, ValueError):
       print("Invalid input.")
       continue
+
+    except(FileNotFoundError): continue
 
 
 
