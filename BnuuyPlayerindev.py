@@ -130,14 +130,12 @@ def playlist_picker(song_paths, bnuy_path, shuffl, directory):
 
       tmp_song = {}
       valid_ext = {
-".mp3", ".tta", ".tak", ".flac",  
-".wav", ".aac", ".m4a", ".wma", 
-".aiff", ".ape", ".mp4", ".webm", 
-".m4b", ".mp2", ".mpa", ".ra",
-".ac3", ".amr", ".3gp",".mpc",
-".spx", ".dsf",".dff", ".wv", 
-".caf", ".rm", ".dts", ".mkv",
-".ogg", ".opus", ".oga", ".mlp"
+".mp3", ".tta", ".raw", ".s3m", ".pcm", ".xm",
+".tak", ".flac",  ".wav", ".aac", ".m4a", ".wma", 
+".aiff", ".ape", ".mp4", ".webm", ".m4b", ".mp2", 
+".mpa", ".ra",".ac3", ".amr", ".3gp",".mpc",
+".spx", ".dsf",".dff", ".wv", ".caf", ".rm",
+".dts", ".mkv",".ogg", ".opus",".oga", ".mlp"
 }
       countr = 0
 
