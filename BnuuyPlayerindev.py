@@ -1,4 +1,4 @@
-import os, subprocess, sys, shutil, pathlib, json
+import os, subprocess, sys, shutil, yt_dlp, json
 
 
 
@@ -81,7 +81,11 @@ def adder_menu():
 3) Allow BnuuyPlayer to search for a specified folder.
 (BnuuyPlayer can only search within the folder it's in.)
 
-4) Skip.
+4) Youtube download/stream.
+(Downloading may take up a chunk of storage.)
+(Streaming may introduce buffering.)
+
+5) Skip.
 (Warning, This is intended for testing, unexpected behavior may occur.)
 
 
@@ -111,25 +115,34 @@ def playlist_picker(song_paths, bnuy_path, shuffl, directory):
 
   while True:
     try:
-      os.system('cls' if os.name == 'nt' else 'clear')
-      counter = 0
-      for num, (name, _, _) in song_paths.items():
-        print(f"{num}) {name}")
-        counter += 1
+
+      countr = 0
+      for num, tupl in song_paths.items():
+        if len(tupl) == 3:
+          (name, _, _) = tupl
+          print(f"{num}) {name}")
+          countr += 1 
+        else:
+          (name, _, _, is_stream) = tupl
+          print(f"{num} {name} (Online stream.)")
+          countr += 1
+
 
       choice = int(input("""0) back
 
 >>> """))
 
+      countr = 0
+
       if choice == 0:
         os.system('cls' if os.name == 'nt' else 'clear')
-        return choice, counter
-
-
-      (name, path, function) = song_paths[choice]
+        return choice, countr
 
       tmp_song = {}
-      valid_ext = {
+
+      try:
+        (name, path, function) = song_paths[choice]
+        valid_ext = {
 ".mp3", ".tta", ".raw", ".s3m", ".pcm", ".xm",
 ".tak", ".flac",  ".wav", ".aac", ".m4a", ".wma", 
 ".aiff", ".ape", ".mp4", ".webm", ".m4b", ".mp2", 
@@ -137,19 +150,24 @@ def playlist_picker(song_paths, bnuy_path, shuffl, directory):
 ".spx", ".dsf",".dff", ".wv", ".caf", ".rm",
 ".dts", ".mkv",".ogg", ".opus",".oga", ".mlp"
 }
-      countr = 0
+        for song in os.listdir(path):
+          filename, ext = os.path.splitext(song)
 
-      for song in os.listdir(path):
-        filename, ext = os.path.splitext(song)
+          if ext in valid_ext:
+            filepath = os.path.join(path, song)
+            countr += 1
+            print(f"{countr}) {filename}")
+            tmp_song[countr] = filepath
+        is_stream = False
 
-        if ext in valid_ext:
-          filepath = os.path.join(path, song)
-          countr += 1
-          print(f"{countr}) {filename}")
-          tmp_song[countr] = filepath
+      except(ValueError):
+          print("Warn: Individual song picking is unsupported for streaming due to technical limitations.")
+        (name, path, function, is_stream) = song_paths[choice]
+
 
       tmp_boolean = True
       while tmp_boolean:
+        if is_stream: break
       
         choice = int(input("""\n1) Play the whole playlist
 2) Play one song
@@ -207,8 +225,13 @@ try:
       pass
 
     tmp_handler = {}
-    for num, (name, combined) in song_paths.items():
-      tmp_handler[num] = (name, combined, audio_funct)
+    for num, tupl in song_paths.items():
+      if len(tupl) != 3:
+        name, combined = tupl
+        tmp_handler[num] = (name, combined, audio_funct)
+      else:
+        name, combined, is_stream = tupl
+        tmp_handler[num] = (name, combined, audio_funct, is_stream)
 
     song_paths = tmp_handler
     res = {i: v for i, v in enumerate(song_paths.values(),start=1)}
@@ -229,8 +252,15 @@ except(FileNotFoundError,AttributeError,KeyError,json.JSONDecodeError):
 def saver(song_paths, initialized, shuffl, no_hint, bulk_save, hist_path):
   tmp_handler = {}
 
-  for num, (name, combined, audio_funct) in song_paths.items():
-    tmp_handler[num] = (name, combined)
+
+  for num, tupl in song_paths.items():
+    check = len(tupl)
+    if check == 3:
+      name, combined, audio_funct = tupl
+      tmp_handler[num] = (name, combined)
+    else:
+      name, combined, audio_funct, is_stream = tupl
+      tmp_handler[num] = (name, combined, is_stream)
 
 
   song_paths = tmp_handler
@@ -482,13 +512,54 @@ B) return
       print("\nInvalid input.")
       continue
 
+#### YOUTUBE DOWNLOADER/STREAMER ####
+
+def yt_adder(song_paths, initialized, bnuy_path, bulk_save, no_hint, hist_path):
+  while True:
+    try:
+      song_path_len = len(song_paths)+1
+      choice = int(input("""1) Download the video/playlist(may take up significant storage, but plays offline and no buffering)
+2) Stream the video/playlist(buffering and online only)
+0) Back
+
+>>> """))
+
+      if choice != 0: url_inp = input("""Enter the url 
+
+>>> """)
+      if choice == 1:
+        initializer(initialized)
+        choice = int(input("""Where would you like to download the file(s)?
+>>> """))
+
+      elif choice == 2:
+        initializer(initialized)
+        name_choice = input("Enter a name: ")
+        is_stream = True
+        song_paths[song_path_len] = (name_choice, url_inp, is_stream, audio_funct)
+        saver(song_paths, initialized, shuffl, no_hint, bulk_save, hist_path)
+        print("Successfully added!")
+
+
+      elif choice == 0:
+        break
+
+      else: raise ValueError
+ 
+
+    except(ValueError):
+      print("\nInvalid input.")
+      continue
+
+
 #### ADDER DICT ####
 
 adders = {
 1: path_adder,
 2: folder_maker,
 3: song_searcher,
-4: "Skip."
+4: yt_adder,
+5: "Skip."
 }
 
 
@@ -523,8 +594,15 @@ WIP
         continue
 
       elif choice == 2:
-        for num, (name, _, _) in song_paths.items():
-          print(f"{num}) {name}")
+
+        for num, tupl in song_paths.items():
+          if len(tupl) == 3:
+            (name, _, _,) = tupl
+            print(f"{num}) {name}")
+          else:
+            (name, _, _, _,) = tupl 
+            print(f"{num}) {name} (Online streaming.)")
+
         del_choice = int(input("""Which would you like to delete? 
 (This only deletes the playlist from BnuuyPlayer!)
 0) return
@@ -548,7 +626,7 @@ WIP
 
       elif choice == 3:
         choice = adder_menu()
-        if choice == 4:
+        if choice == 5:
           continue
 
         funct = adders[choice]
@@ -601,11 +679,11 @@ To use BnuuyPlayer, there must first be a valid song folder/playlist.""")
         choice = adder_menu()
         os.system('cls' if os.name == 'nt' else 'clear')
 
-        if choice in range(1, 4): 
+        if choice in range(1, 5): 
           funct = adders[choice]
           funct(song_paths, initialized, bnuy_path, bulk_save, no_hint, hist_path)
           break
-        elif choice == 4:
+        elif choice == 5:
           initializer(initialized)
           break
 
