@@ -1,4 +1,4 @@
-import os, subprocess, sys, shutil, yt_dlp, json
+import os, subprocess, sys, yt_dlp, json
 
 
 
@@ -59,39 +59,46 @@ def term_cleaner():
 #### KEYBINDED MENU ####
 
 def binding_menu():
-  print(f"""\nKeybindings;
-q) Quit
-Q) Quit, but saves position
-l) Loop current song
-m) Mute
-p / space ) Pause
-P) show progress
-i) Info
-< / >) Go backward/forward in the playlist
-[ / ]) -10% and +10% playback speed
-{{ / }}) Half/double playback speed
-Backspace) Reset playback speed to normal
-9 / 0) Vol +2 / -2
-+ / -) skip 5s / back 5s
-s / b) skip 30s / back 30s
-G / F) Increase / decrease subtitle size
-""")
+  term_cleaner()
+  print("""
+___________________________________________________________
+▼ Keybinds ▼                                               |
+                                                           |
+q) Quit                                                    |
+Q) Quit, but saves position                                |
+l) Loop current song                                       |
+m) Mute                                                    |
+p / space ) Pause                                          |
+P) show progress                                           |
+i) Info                                                    |
+< / >) Go backward/forward in the playlist                 |
+[ / ]) -10% and +10% playback speed                        |
+{ / }) Half/double playback speed                          |
+Backspace) Reset playback speed to normal                  |
+9 / 0) Vol +2 / -2                                         |
++ / -) skip 5s / back 5s                                   |
+s / b) skip 30s / back 30s                                 |
+G / F) Increase / decrease subtitle size                   |
+___________________________________________________________|""")
 
 def adder_menu():
-  choice = int(input(f"""1) Specify the path to your own folder.
-
-2) Allow BnuuyPlayer to make a folder automatically.
-
-3) Allow BnuuyPlayer to search for a specified folder.
-(BnuuyPlayer can only search within the folder it's in.)
-
-4) Youtube download/stream.
-(Downloading may take up a chunk of storage.)
-(Streaming may introduce buffering.)
-
-5) Skip.
-(Warning, This is intended for testing, unexpected behavior may occur.)
-
+  choice = int(input("""
+___________________________________________________________
+▼ Playlist methods. ▼                                      |
+                                                           |
+1) Specify the path to your own folder.                    |
+                                                           |
+2) Allow BnuuyPlayer to make a folder automatically.       |
+                                                           |
+3) Allow BnuuyPlayer to search for a specified folder.     |
+(BnuuyPlayer can only search within the folder it's in.)   |
+                                                           |
+4) Youtube download/stream.                                |
+(Downloading may take up a chunk of storage.)              |
+(Streaming may introduce buffering.)                       |
+                                                           |
+0) Skip/back.                                              |
+___________________________________________________________|
 
 >>> """))
   term_cleaner()
@@ -121,6 +128,8 @@ def playlist_picker(song_paths, bnuy_path, shuffl, directory):
     try:
 
       countr = 0
+      term_cleaner()
+      print("__________________________________________________________/\\")
       for num, tupl in song_paths.items():
         if len(tupl) == 3:
           (name, _, _) = tupl
@@ -128,11 +137,16 @@ def playlist_picker(song_paths, bnuy_path, shuffl, directory):
           countr += 1 
         else:
           (name, _, _, is_stream) = tupl
-          print(f"{num} {name} (Online stream.)")
+          print(f"{num}) {name} (Online stream.)")
           countr += 1
 
 
-      choice = int(input("""0) back
+      choice = int(input("""
+__________________________________________________________\\/
+▼ Extra commands ▼                                         |
+                                                           |
+0) back                                                    |
+___________________________________________________________|
 
 >>> """))
 
@@ -148,7 +162,7 @@ def playlist_picker(song_paths, bnuy_path, shuffl, directory):
         (name, path, function) = song_paths[choice]
         invalid_ext = {
 ".midi", ".mid", ".mod", ".xm", ".s3m",
-".it", ".caf", ".ape", ".wma"}
+".it", ".wma"}
         for song in os.listdir(path):
           filename, ext = os.path.splitext(song)
 
@@ -160,7 +174,7 @@ def playlist_picker(song_paths, bnuy_path, shuffl, directory):
         is_stream = False
 
       except(ValueError):
-          print("Warn: Individual song picking is unsupported for streaming due to technical limitations.")
+          print("Warning: Individual song picking is unsupported for streaming due to technical limitations.")
           (name, path, function, is_stream) = song_paths[choice]
 
 
@@ -168,17 +182,28 @@ def playlist_picker(song_paths, bnuy_path, shuffl, directory):
       while tmp_boolean:
         if is_stream: break
       
-        choice = int(input("""\n1) Play the whole playlist
-2) Play one song
-3) Back
+        if len(os.listdir(path)) < 1:
+          term_cleaner()
+          print("\nPlaylist is empty.\n")
+
+        choice = int(input("""
+___________________________________________________________
+▼ Commands ▼                                               |
+                                                           |
+1) Play the whole playlist                                 |
+2) Play one song                                           |
+3) Back                                                    |
+___________________________________________________________|
 
 >>> """))
-        term_cleaner()
 
         if choice == 1: break
 
         elif choice == 2:
-          choice = int(input("""Enter the num of the song you'd like
+          choice = int(input("""
+___________________________________________________________
+Enter the num of the song you'd like                       |
+___________________________________________________________|
 
 >>> """))
           path = tmp_song[choice]
@@ -192,6 +217,8 @@ def playlist_picker(song_paths, bnuy_path, shuffl, directory):
         player = ["mpv", path, f"--input-conf={directory}", "--profile=fast", "--no-video"]
       else:
         player = ["mpv", path, f"--input-conf={directory}", "--profile=fast", "--no-video", "--shuffle"]
+
+      term_cleaner()
 
       return choice, name, function, path, player
 
@@ -215,6 +242,7 @@ try:
   hist_path = os.path.join(bnuy_path, "BnuyPlayerHist.json")
   with open(hist_path, 'r') as f:
     bulk_save = json.load(f)
+
     song_paths = bulk_save["0"]
     initialized = bulk_save["1"]
     no_hint = bulk_save["2"]
@@ -224,18 +252,45 @@ try:
       pass
 
     tmp_handler = {}
+    err_paths = {}
+    del_dict = {}
+
+    invalid_countr = 0
     for num, tupl in song_paths.items():
-      if len(tupl) != 3:
+      if len(tupl) == 2:
         name, combined = tupl
         tmp_handler[num] = (name, combined, audio_funct)
-      else:
+      elif len(tupl) == 3:
         name, combined, is_stream = tupl
         tmp_handler[num] = (name, combined, audio_funct, is_stream)
 
+      else:
+        invalid_countr += 1
+        print(f"""Found invalid save path, was the JSON edited/corrupted?
+Found {invalid_countr} invalid save paths.
+Corrupted/edited path) {tupl}""")
+
+        err_paths[len(err_paths)+1] = tupl
+
+      if len(tupl) == 2 and not os.path.isdir(combined):
+        print(f"""\nFound a deleted or corrupted folder at {combined}
+Deleting to prevent bugs..\n""")
+        del_dict[num] = num, tupl
+
+    if len(err_paths) > 0:
+      print(f"Invalid saves list; {err_paths}")
+
     song_paths = tmp_handler
+
+    if len(del_dict) >= 1:
+      for num in del_dict:
+        del song_paths[num]
+      del_dict.clear() # Delete invalid/corrupted song paths.
+
     res = {i: v for i, v in enumerate(song_paths.values(),start=1)}
     song_paths.clear()
-    song_paths.update(res)
+    song_paths.update(res) # Reindexes song path keys.
+
 
 
 
@@ -287,22 +342,32 @@ def path_adder(song_paths, initialized, bnuy_path, bulk_save, no_hint, hist_path
   term_cleaner()
   while True:
     try:
-      print("""Hint: Valid file paths are:
+      path_input = input("""
+___________________________________________________________
+▼ Valid file paths ▼                                       |
+                                                           |
+MacOS: /users/<your_username>/...                          |
+Linux: /home/<your_username>/...                           |
+Android: /storage/emulated/0/...                           |
+Windows: C:\\users\\<your_username>\\...                   |
+___________________________________________________________|
+                                                           |
+These are how your device sees your folders/files.         |
+A folder named "Synth" on android in the Home dir would be |
+/storage/emulated/0/synth                                  |
+___________________________________________________________|
+▼ Extra commands ▼                                         |
+                                                           |
+0) Back                                                    |
+___________________________________________________________|
 
-MacOS: /users/<your_username>/...
-Linux: /home/<your_username>/...
-Android: /storage/emulated/0/...
-Windows: C:\\users\\<your_username>\\...
+Please input a path to a folder.
 
-These are how your device sees your folders/files.
-A folder named "Synth" on android in the Home dir would be 
-/storage/emulated/0/synth\n""")
-      path_input = input("""B) Back
-Please input the path to the folder.
 >>> """)
+
       is_playlist_path = os.path.isdir(path_input)
 
-      if path_input == "B":
+      if path_input == "0":
         break
 
       if not is_playlist_path:
@@ -313,9 +378,13 @@ Please input the path to the folder.
       else:
         term_cleaner()
         while True:
-          name_choice = input("""Would you like to use the folder name, or create a display name?
-1) Create a display name(Only affects how Bnuuyplayer shows you the playlist!)
-2) Use the folder name
+          name_choice = input("""
+___________________________________________________________
+▼ Commands ▼                                               |
+                                                           |
+1) Create a display name.                                  |
+2) Use the folder name.                                    |
+___________________________________________________________|
 
 >>> """)
           if name_choice == "1": 
@@ -339,13 +408,18 @@ Please input the path to the folder.
 
         initializer(initialized)
       
-        path_input = input("""Would you like to add one more or continue?
-c) Continue to BnuuyPlayer.
-a) Add one more path.
+        path_input = input("""
+___________________________________________________________
+▼ Commands ▼                                               |
+                                                           |
+1) Continue to BnuuyPlayer.                                |
+2) Add one more path.                                      |
+___________________________________________________________|
+
 >>> """).lower()
 
-      if path_input == "c": break
-      elif path_input == "a": continue
+      if path_input == "1": break
+      elif path_input == "2": continue
       else: raise ValueError
 
     except(ValueError):
@@ -358,13 +432,22 @@ def folder_maker(song_paths, initialized, bnuy_path, bulk_save, no_hint, hist_pa
   term_cleaner()
   while True:
     try:
-      folder_name = input("""Continue to let BnuuyPlayer to make a folder.
-1) Continue
-2) Back
+      folder_name = input("""
+___________________________________________________________
+Continue to let BnuuyPlayer to make a folder.              |
+                                                           |
+1) Continue                                                |
+2) Back                                                    |
+___________________________________________________________|
+
 >>> """)
       if folder_name == "1":
         term_cleaner()
-        folder_name = input("""What would you like to name the playlist?
+        folder_name = input("""
+___________________________________________________________
+What would you like to name the playlist?                  |
+___________________________________________________________|
+
 >>> """)
 
         song_path = os.path.join(bnuy_path, folder_name)
@@ -375,7 +458,7 @@ def folder_maker(song_paths, initialized, bnuy_path, bulk_save, no_hint, hist_pa
         song_paths[num] = (folder_name, song_path, audio_funct)
         saver(song_paths, initialized, shuffl, no_hint, bulk_save, hist_path)
         term_cleaner()
-        print(f"""Successfully created.
+        print(f"""\nSuccessfully created.
 Path to the new playlist folder) {song_path}
 
 You can add any song to the newly created playlist.""")
@@ -396,35 +479,47 @@ You can add any song to the newly created playlist.""")
       continue
 
     except(OSError):
-      print(f"""\nUnknown Error. You likely use an invalid character/name for the folder name.
-
-Invalid character/name list:
-Windows: 
-< > : - " / \\ | ? *
-
-CON, PRN, AUX, 
-NUL COM1, COM2, COM3, COM4, COM5, COM6, COM7, COM8, COM9 
-LPT1, LPT2, LPT3, LPT4, LPT5, LPT6, LPT7, LPT8, LPT9
-
-0-31 (ASCII control characters)
-
-Names also cannot end in a dot or space.
-
-Linux:
-0 (NULL byte)
-/
-. (special name referring to current directory) 
-.. (special name referring to parent directory)
-
-macOS:
-:
-/
-
-Android:
-< > : - " / \\ | ? *
-
-\\n
-0-31 (ASCII control characters)""")
+      print(f"""
+___________________________________________________________
+Unknown Error. You likely use an invalid character/name.   |
+___________________________________________________________|
+                                                           |
+Invalid character/name list                                |
+                                                           |
+___________________________________________________________|
+Windows:                                                   |
+< > : - " / \\ | ? *                                       |
+                                                           |
+CON, PRN, AUX,                                             |
+NUL COM1, COM2, COM3, COM4, COM5, COM6, COM7, COM8, COM9   |
+LPT1, LPT2, LPT3, LPT4, LPT5, LPT6, LPT7, LPT8, LPT9       |
+                                                           |
+0-31 (ASCII control characters)                            |
+                                                           |
+Names also cannot end in a dot or space.                   |
+                                                           |
+___________________________________________________________|
+                                                           |
+Linux:                                                     |
+0 (NULL byte)                                              |
+/                                                          |
+. (special name referring to current directory)            |
+.. (special name referring to parent directory)            |
+                                                           |
+___________________________________________________________|
+                                                           |
+macOS:                                                     |
+:                                                          |
+/                                                          |
+                                                           |
+___________________________________________________________|
+                                                           |
+Android:                                                   |
+< > : - " / \\ | ? *                                       |
+\\n                                                        |
+0-31 (ASCII control characters)                            |
+                                                           |
+___________________________________________________________|""")
       continue
     
     except(ValueError):
@@ -437,14 +532,20 @@ Android:
 def song_searcher(song_paths, initialized, bnuy_path, bulk_save, no_hint, hist_path):
   term_cleaner()
   song_path_len = 0
-  song_path_len += len(song_paths)
+  song_path_len += len(song_paths) 
   while True:
-    name = input("""Please enter the folder name you'd like BnuuyPlayer find.
-B) return
+    name = input("""
+___________________________________________________________
+Please enter the folder name you'd like BnuuyPlayer to find|
+___________________________________________________________|
+▼ Extra commands ▼                                         |
+                                                           |
+0) return                                                  |
+___________________________________________________________|
 
 >>> """)
 
-    if name == "B": break
+    if name == "0": break
 
     results = {}
     res_len = len(results)
@@ -463,7 +564,11 @@ B) return
         while True:
           for key, (name, root, _) in results.items():
             print(f"{key}) found at: {root}")
-          choice = int(input("""Which one is correct? If all are, enter "0"
+          choice = int(input("""
+___________________________________________________________
+Which one is correct? If all are, enter "0"                |
+___________________________________________________________|
+
 >>> """))
 
           if choice > key or choice < 0:
@@ -485,15 +590,23 @@ B) return
 
       elif len(results) == 1:
         song_path_len += 1
-        song_paths[song_path_len] = (name, combined, audio_funct)
+        _, combined, _ = results[1]
+        song_paths[song_path_len] = results[1]
 
       else:
         raise UnboundLocalError
 
       term_cleaner()
-      choice = int(input(f"""Successfully found at {combined}\n
-1) Return to BnuuyPlayer
-2) Add another folder.
+      choice = int(input(f"""
+___________________________________________________________
+Successfully found at {combined}!                          |
+___________________________________________________________|
+▼ Extra commands ▼                                         |
+                                                           | 
+1) Return to BnuuyPlayer                                   |
+2) Add another folder.                                     |
+___________________________________________________________|
+
 >>> """))
       saver(song_paths, initialized, shuffl, no_hint, bulk_save, hist_path)
       initializer(initialized)
@@ -518,26 +631,37 @@ def yt_adder(song_paths, initialized, bnuy_path, bulk_save, no_hint, hist_path):
   while True:
     try:
       song_path_len = len(song_paths)+1
-      choice = int(input("""1) Download the video/playlist(may take up significant storage, but plays offline and no buffering)
-2) Stream the video/playlist(buffering and online only)
-0) Back
+      choice = int(input("""
+___________________________________________________________
+▼ Commands ▼                                               |
+                                                           |
+1) Download the video/playlist(may take alot of storage)   |
+2) Stream the video/playlist(Online only)                  |
+0) Back                                                    |
+___________________________________________________________|
 
 >>> """))
 
       if choice != 0: 
         term_cleaner()
-        url_inp = input("""Enter the url 
+        url_inp = input("""
+___________________________________________________________
+Enter a url                                                | 
+___________________________________________________________|
 
 >>> """)
       if choice == 1:
         term_cleaner()
-        choice = int(input("""Where would you like to download the file(s)?
-
-1) Put the song(s) in a already existing playlist. (Local playlists only.)
-
-2) Allow BnuuyPlayer to make a folder.
-
-3) Return.
+        choice = int(input("""
+___________________________________________________________
+Where would you like to download the file(s)?              |
+___________________________________________________________|
+▼ Commands ▼                                               |
+                                                           |
+1) Put the song(s) in a existing local playlist.           |
+2) Allow BnuuyPlayer to make a folder.                     |
+0) Return.                                                 |
+___________________________________________________________|
 
 >>> """))
         match choice:
@@ -549,21 +673,40 @@ def yt_adder(song_paths, initialized, bnuy_path, bulk_save, no_hint, hist_path):
                 (name, _, _) = tupl
                 countr += 1
                 print(f"{countr}) {name}")
-            choice = int(input("""Pick a playlist.
+            if len(song_paths) < 1:
+              print("\nNo playlists currently available.")
+            choice = int(input("""
+___________________________________________________________
+Pick a playlist.                                           |
+___________________________________________________________|
+▼ Extra commands ▼                                         |
+                                                           |
+0) Return.                                                 |
+___________________________________________________________|
 
 >>> """))
-            (_, path, _) = song_paths[choice]
+            if choice != 0: (_, path, _) = song_paths[choice]
+
+            else: continue
           
 
           case 2:
             term_cleaner()
-            folder_name = input("""What would you like to name the folder?
+            folder_name = input("""
+___________________________________________________________
+What would you like to name the folder?                    |
+___________________________________________________________|
 
 >>> """)
             path = os.path.join(bnuy_path, folder_name)
             os.makedirs(path)
-            disp_name = input("""Would you like a display name for the folder?
-0) No, continue.
+            term_cleaner()
+            disp_name = input("""
+___________________________________________________________
+Would you like a display name for the folder?              |
+                                                           |
+0) No, continue.                                           |
+___________________________________________________________|
 
 >>> """)
             if disp_name == "0": 
@@ -571,52 +714,86 @@ def yt_adder(song_paths, initialized, bnuy_path, bulk_save, no_hint, hist_path):
             else:
               song_paths[len(song_paths)+1] = disp_name, path, audio_funct
 
-          case 3: continue
+          case 0: continue
 
           case _: raise ValueError
 
         term_cleaner()
-        ext = input("""Enter the file extension you'd like.
-__________________________
-▼ Recommended choices ▼   |
-                          |
-mp4                       |
-mp3                       |
-m4a                       |
-__________________________|
-▼ Unsupported extensions ▼|
-                          |
-midi/mid                  |
-mod, xm, s3m, it          |
-caf                       |
-ape                       |
-wma                       |
-__________________________|
-Do not include a dot when entering the file extension!
+        while True:
+          ext = input("""
+___________________________________________________________
+Enter the file extension you'd like.                       |
+___________________________________________________________|
+▼ Recommended extensions ▼                                 |
+                                                           |
+mp3(Audio)                                                 |
+m4a(Audio)                                                 |
+m4v(Video)                                                 |
+mp4(Video)                                                 |
+___________________________________________________________|
+▼ Unsupported extensions ▼                                 |
+                                                           |
+midi/mid                                                   |
+mod, xm, s3m, it                                           |
+wma                                                        |
+___________________________________________________________|
+▼ Extra commands         ▼                                 |
+0) Return                                                  |
+___________________________________________________________|
+
+Warning: Do not include a dot when entering the file extension.
 
 >>> """)
-        print("Successfully completed operations, song(s) being downloaded now..")
 
+          vid_ext = {
+"mp4", "webm", "mkv", "avi", "mov", "dv",
+"mpg", "mpeg", "m4v", "ts", "mxf", "ogv",
+"rm", "swf", "flv", "gxf", "asf", "wmv",
+"3gp", "3g2", "f4v", "nuv", "roq", "ivf"
+}
+          if "." in ext:
+            print("Invalid ext, do not include a dot!")
+            continue
+          elif ext == "0":break
 
-        yt_opts = {"outtmpl": f"{path}/%(title)s.%(ext)s",
-                   "format": "bestaudio/best",
-                   "postprocessors": [{
-                       "key": "FFmpegExtractAudio",
-                       "preferredcodec": ext,
-                       }]
-                  }
-        term_cleaner()
-        with yt_dlp.YoutubeDL(yt_opts) as ydl:
-          ydl.download(url_inp)
+          elif ext not in vid_ext:
+            yt_opts = {"outtmpl": f"{path}/%(title)s.%(ext)s",
+                       "format": "bestaudio/best",
+                       "postprocessors": [{
+                           "key": "FFmpegExtractAudio",
+                           "preferredcodec": ext,
+                        }]
+                      }
 
-        print("\nSuccessfully downloaded!\n")
+          else:
+            yt_opts = {"outtmpl": f"{path}/%(title)s.%(ext)s",
+                       "format": f"bestvideo[ext={ext}]+bestaudio/best"}
 
-        initializer(initialized)
-        saver(song_paths, initialized, shuffl, no_hint, bulk_save, hist_path)
+          term_cleaner()
+          try:
+            with yt_dlp.YoutubeDL(yt_opts) as ydl:
+              ydl.download(url_inp)
+          except yt_dlp.utils.DownloadError as e:
+            if "unsupported" in str(e).lower():
+              print("Unsupported URL, or a invalid URL was inputted.")
+            else:
+              print(f"Download failed, error message; {repr(e)}\n\nPlease report the error.")
+            continue
+
+          print("\nSuccessfully downloaded!\n")
+
+          initializer(initialized)
+          saver(song_paths, initialized, shuffl, no_hint, bulk_save, hist_path)
+          break
 
       elif choice == 2:
         initializer(initialized)
-        name_choice = input("Enter a name: ")
+        name_choice = input("""
+___________________________________________________________
+Enter a name                                               |
+___________________________________________________________|
+
+>>> """)
         is_stream = True
         song_paths[song_path_len] = (name_choice, url_inp, audio_funct, is_stream)
         saver(song_paths, initialized, shuffl, no_hint, bulk_save, hist_path)
@@ -630,7 +807,7 @@ Do not include a dot when entering the file extension!
       else: raise ValueError
  
 
-    except(ValueError):
+    except(ValueError, KeyError):
       print("\nInvalid input.")
       continue
 
@@ -638,11 +815,11 @@ Do not include a dot when entering the file extension!
 #### ADDER DICT ####
 
 adders = {
+0: "Skip.",
 1: path_adder,
 2: folder_maker,
 3: song_searcher,
 4: yt_adder,
-5: "Skip."
 }
 
 
@@ -650,12 +827,17 @@ adders = {
 def settings(shuffl, song_paths, adders, bulk_save, initialized, no_hint, hist_path):
   while True:
     try:
-      choice = int(input("""\n1) Toggle shuffle. (This is saved between sessions!)
-2) Delete a playlist.
-3) Add a playlist.
-0) Return.
 
-WIP
+      choice = int(input("""
+___________________________________________________________
+▼ Commands ▼                                               |
+                                                           |
+1) Toggle shuffle. (This is saved between sessions!)       |
+2) Delete a playlist.                                      |
+3) Add a playlist.                                         |
+0) Return.                                                 |
+___________________________________________________________|
+
 >>> """))
       term_cleaner()
 
@@ -677,18 +859,24 @@ WIP
         continue
 
       elif choice == 2:
-
+        print("___________________________________________________________")
         for num, tupl in song_paths.items():
           if len(tupl) == 3:
             (name, _, _,) = tupl
-            print(f"{num}) {name}")
+            print(f"{num}) {name}                                                  | ")
           else:
             (name, _, _, _,) = tupl 
-            print(f"{num}) {name} (Online streaming.)")
+            print(f"{num}) {name} (Online streaming.)                              |")
 
-        del_choice = int(input("""Which would you like to delete? 
-(This only deletes the playlist from BnuuyPlayer!)
-0) return
+        del_choice = int(input("""
+___________________________________________________________
+                                                           |
+Which would you like to delete?                            |
+(This only deletes the playlist from BnuuyPlayer!)         |
+___________________________________________________________|
+▼ Extra commands ▼                                         |
+0) return                                                  |
+___________________________________________________________|
 
 >>> """))
 
@@ -709,7 +897,7 @@ WIP
 
       elif choice == 3:
         choice = adder_menu()
-        if choice == 5:
+        if choice == 0:
           continue
 
         funct = adders[choice]
@@ -723,10 +911,13 @@ WIP
 #### OPERATIONS ####
 
 main_operations = {
-"1": ("Playlists", "Your library, this is where your songs and playlists live.", audio_funct),
-"2": ("Keybinds", "Music player keybinds.", binding_menu),
-"3": ("Settings", "Your settings, you can toggle shuffle, add/remove songs, and do more here.", settings),
-"e": ("Exit", "Closes the audio player", exity)
+"1": ("Playlists", "Your library, your songs/playlists are here.         ", audio_funct),
+
+"2": ("Keybinds ", "Music player keybinds.                               ", binding_menu),
+
+"3": ("Settings ", "Your settings, this is where important functions are.", settings),
+
+"e": ("Exit     ", "Closes BnuuyPlayer.                                  ", exity)
 }
 
 #### INITIAL SETUP ####
@@ -766,7 +957,7 @@ To use BnuuyPlayer, there must first be a valid song folder/playlist.""")
           funct = adders[choice]
           funct(song_paths, initialized, bnuy_path, bulk_save, no_hint, hist_path)
           break
-        elif choice == 5:
+        elif choice == 0:
           initializer(initialized)
           break
 
@@ -784,7 +975,8 @@ To use BnuuyPlayer, there must first be a valid song folder/playlist.""")
 #### MAIN MENU ####
 
 def main_menu(main_operations, song_paths, initialized, no_hint, hist_path, bulk_save, shuffl):
-    term_cleaner()
+
+    saver(song_paths, initialized, shuffl, no_hint, bulk_save, hist_path)
     print("""
 ⠀⠀⣠⡶⢶⣦⠀⠀⠀⣠⡶⢶⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⢰⡟⠀⠀⢹⣧⠀⣸⠏⠀⠀⢻⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
@@ -800,28 +992,34 @@ def main_menu(main_operations, song_paths, initialized, no_hint, hist_path, bulk
 ⠀⠙⠻⣦⣄⣀⣀⣈⣁⣀⣤⠾⠋⠀⠀⠀⠀⠀⣀⣠⣴⡶⢿⡿⠿⠶⣶⠶⠟⠀
 ⠀⠀⢠⡟⠉⢙⣿⠛⠋⠉⠁⠀⠀⣀⣠⣴⠶⠟⠛⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠘⢿⣤⣘⣿⡀⠀⠀⢀⣴⡿⠋⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠈⠉⠙⠛⠻⠿⠛⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
- ________________________________________________________________________
-|Welcome back to BnuuyPlayer!                                            |
-|________________________________________________________________________|
-⠀⠀⠀⠀
-""")
+⠀⠀⠀⠀⠈⠉⠙⠛⠻⠿⠛⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+___________________________________________________________
+Welcome back to BnuuyPlayer!                               |
+___________________________________________________________|\n""")
 
     while True:
       try:
+        print("___________________________________________________________")
         for key, (name, _, _) in main_operations.items():
-          print(f"{key}) {name}")
-
+          print(f"{key}) {name}                                               |")
+        print("___________________________________________________________|")
         if not no_hint[0]:
-          print("Hint: enter h / H for extra information, or 0 to toggle this message.")
+          print("""
+▼ Extra commands ▼                                         |
+                                                           | 
+h/H) Extra information, use if you're lost.                |
+0) Toggle this message off/on.                             |
+___________________________________________________________|""")
         choice = input(">>> ").lower()
 
         if choice == "h":
           term_cleaner()
+          print("___________________________________________________________")
           for num, (name, hint, _) in main_operations.items():
-            print(f"""{num}) {name}
-Info: {hint}
-""")
+            print(f"""{num}) {name}                                               |
+Info: {hint}|
+                                                           |""")
+          print("___________________________________________________________|\n")
           continue
 
         elif choice == "0":
@@ -838,9 +1036,9 @@ Info: {hint}
 
         term_cleaner()
         (name, _, function) = main_operations[choice]
-        if name == "Settings":
+        if choice == "3":
           function(shuffl, song_paths, adders, bulk_save, initialized, no_hint, hist_path)
-        elif name == "Keybinds":
+        elif choice == "2":
           function()
         else: function(directory)
 
