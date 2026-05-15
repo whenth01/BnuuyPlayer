@@ -5,3 +5,4 @@ __pycache__/
 *.conf
 test/
 peak/
+temp_dl/

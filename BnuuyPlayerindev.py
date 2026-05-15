@@ -9,6 +9,7 @@ except ModuleNotFoundError as e:
 
 def bnuy_except_hook(exctype, value, traceback):
     if exctype == KeyboardInterrupt:
+        print("Turning off.. Thank you for using BnuuyPlayer!")
         sys.exit()
     elif exctype == IsADirectoryError:
         print("""IsADirectoryError occurred!
@@ -230,7 +231,7 @@ ___________________________________________________________|
 
             try:
                 name, path, function = song_paths[choice]
-                invalid_ext = {".midi", ".mid", ".mod", ".xm", ".s3m", ".it", ".wma"}
+                invalid_ext = {".midi", ".mid", ".mod", ".xm", ".s3m", ".it", ".wma", ".lrc"}
                 for song in os.listdir(path):
                     filename, ext = os.path.splitext(song)
 
@@ -951,6 +952,65 @@ ___________________________________________________________|
             continue
 
 
+
+#### YT Hook ####
+
+def yt_hook(d):
+    if d["status"] == "finished":
+
+        info_dict = d["info_dict"]
+
+        title = info_dict.get("title")
+        artist = info_dict.get("artist")
+        duration = info_dict.get("duration")
+        album = info_dict.get("album")
+
+        filepath = d.get("filepath")
+
+
+        try:
+
+            lrc_get = requests.get(f"https://lrclib.net/api/get?artist_name={artist}&track_name={title}&album_name={album}&duration={duration}")
+
+        except(requests.exceptions.Timeout):
+            print("\nTimeout!")
+            pass
+
+
+        if lrc_get.status_code == 200:
+            data = lrc_get.json()
+
+            lyricsync = data.get('syncedLyrics')
+            lyricplain = data.get('plainLyrics')
+
+            print(f"\n\nDownloading lyrics..")
+
+            if lyricsync is not None:
+                lyric = lyricsync
+                print("\nSynced lyrics autoselected.")
+            elif lyricplain is not None:
+                print("\nNo synced lyrics available, defaulting to plain.")
+                lyric = lyricplain
+            else:
+                print("\nNo lyrics found!")
+                return
+
+            base_name = os.path.splitext(os.path.basename(d["filename"]))[0]
+
+            lrc_path = os.path.join(os.path.dirname(d["filename"]), f"{base_name}.lrc")
+
+            if lyric is not None:
+                with open(lrc_path, "w") as f:
+                    f.write(lyric)
+
+        else:
+            if lrc_get.status_code == 404:
+                print("\n No lyrics found!")
+
+            else:
+                print(f"\nUnknown error) {lrc_get.status_code}")
+
+
 #### YOUTUBE DOWNLOADER/STREAMER ####
 
 
@@ -1114,7 +1174,7 @@ ___________________________________________________________|
 
 >>> """))
                         if choice != 0:
-                            num, (name, path, audio_funct) = tmp_dict[choice]
+                            num, (name, path, _) = tmp_dict[choice]
 
                         else:
                             continue
@@ -1232,7 +1292,9 @@ Warning: Do not include a dot when entering the file extension.
                         yt_opts = {
                             "outtmpl": f"{path}/%(title)s.%(ext)s",
                             "format": "bestaudio/best",
+                            "progress_hooks": [yt_hook],
                             "ignoreerrors": True,
+                            "no_warnings": True,
                             "postprocessors": [
                                 {
                                     "key": "FFmpegExtractAudio",
@@ -1244,8 +1306,10 @@ Warning: Do not include a dot when entering the file extension.
                     else:
                         yt_opts = {
                             "ignoreerrors": True,
+                            "no_warnings": True,
                             "outtmpl": f"{path}/%(title)s.%(ext)s",
-                            "format": f"bestvideo[ext={ext}]+bestaudio/best",
+                            "progress_hooks": [yt_hook],
+                            "format": f"best[ext={ext}]",
                         }
 
                     term_cleaner()
