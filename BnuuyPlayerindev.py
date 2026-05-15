@@ -1,19 +1,27 @@
+import os
+import subprocess
+import sys
+import json
+import threading
+
+import time # Temporarily imported for me to understand threads.
 
 try:
-    import os, subprocess, sys, json
-
-    import requests, yt_dlp
+    import requests
+    import yt_dlp
 
 except ModuleNotFoundError as e:
     print(f"A dependency failed to import or is uninstalled! \n ▼ Error ▼ \n\n{e}")
 
 def bnuy_except_hook(exctype, value, traceback):
     if exctype == KeyboardInterrupt:
-        print("Turning off.. Thank you for using BnuuyPlayer!")
+        print("\n\nTurning off.. Thank you for using BnuuyPlayer!")
         sys.exit()
     elif exctype == IsADirectoryError:
         print("""IsADirectoryError occurred!
-This means you likely named a folder after one of BnuuyPlayer's jsons, please rename the folder or delete it to use BnuuyPlayer.""")
+This means you likely named a folder after one of BnuuyPlayer's jsons.
+
+Please rename the folder or delete it to use BnuuyPlayer.""")
         sys.exit()
     else:
         sys.__excepthook__(exctype, value, traceback)
@@ -180,16 +188,48 @@ def audio_funct(directory):
     result = playlist_picker(song_paths, bnuy_path, shuffl, directory)
     try:
         _, _, _, _, player = result
-        binding_menu()
         print("")
 
         try:
+            # lrc_thrd = threading.Thread(target=lrc_funct, daemon=True)
+            # lrc_thrd.start()
+
+            binding_menu()
             subprocess.run(player, check=True)
             term_cleaner()
+
         except(subprocess.CalledProcessError) as e:
             print(f"Error occurred during playback! Error msg: {e}")
     except (ValueError, KeyError):
         pass
+
+
+# Deprecated until further notice
+# This is being kept as it'll  be used sometime in the future, around esrly 20uri
+
+# This is due ti termux MPV not supporting IPC, which this requires.
+# ToDo: Commment out all the code below.
+
+#class colors:
+#    LIGHT_GREY = '\033[97m' # Lyricz
+#    ENDC = '\033[0m' # End of print
+#    BOLD = '\033[1m' # Current Lyrics
+
+#print(f"{colors.BOLD} text {colors.ENDC}")     # Example of how to print it
+
+
+#def lrc_funct():
+#    term_cleaner()
+#    binding_menu()
+#    while True:
+#        if not os.path.exists(f"{bnuy_path}/.mpv_socket"):
+#            time.sleep(0.05)
+#            continue
+#        print("\n\n\n")
+#        get_time = subprocess.run("""echo '{ "command": ["get_property", "playback-time"] }' | socat - /tmp/mpvsocket""", shell=True, capture_output=True)
+#        result = get_time.stdout.decode('utf-8')
+#        print(json.loads(result))
+#        time.sleep(3)
 
 
 #### PLAYLIST PICKER ####
@@ -290,23 +330,20 @@ ___________________________________________________________|
                 else:
                     raise ValueError
 
-            if not shuffl[0]:
-                player = [
+
+            player = [
                     "mpv",
                     path,
                     f"--input-conf={directory}",
                     "--profile=fast",
-                    "--no-video",
+                    "--no-video"
                 ]
-            else:
-                player = [
-                    "mpv",
-                    path,
-                    f"--input-conf={directory}",
-                    "--profile=fast",
-                    "--no-video",
-                    "--shuffle",
-                ]
+
+            # f"--input-ipc-server={bnuy_path}/.mpv_socket"
+            # saving this here for when i have a laptop/pv..
+
+            if shuffl[0]:
+                player.append("--shuffle")
 
             term_cleaner()
 
@@ -658,7 +695,7 @@ ___________________________________________________________
 MacOS: /users/<your_username>/...                          |
 Linux: /home/<your_username>/...                           |
 Android: /storage/emulated/0/...                           |
-Windows: C:\\users\\<your_username>\\...                   |
+Windows: C:\\users\\<your_username>\\...                      |
 ___________________________________________________________|
                                                            |
 These are how your device sees your folders/files.         |
@@ -721,15 +758,15 @@ ___________________________________________________________|
 ___________________________________________________________
 ▼ Commands ▼                                               |
                                                            |
-1) Continue to BnuuyPlayer.                                |
-2) Add one more path.                                      |
+1) Add one more path.                                      |
+0) Return to BnuuyPlayer main menu                         |
 ___________________________________________________________|
 
 >>> """).lower()
 
-            if path_input == "1":
+            if path_input == "0":
                 break
-            elif path_input == "2":
+            elif path_input == "1":
                 continue
             else:
                 raise ValueError
@@ -751,7 +788,7 @@ ___________________________________________________________
 Continue to let BnuuyPlayer to make a folder.              |
                                                            |
 1) Continue                                                |
-2) Back                                                    |
+0) Back                                                    |
 ___________________________________________________________|
 
 >>> """)
@@ -781,7 +818,7 @@ You can add any song to the newly created playlist.""")
 
                 break
 
-            elif folder_name == "2":
+            elif folder_name == "0":
                 break
 
             else:
@@ -928,8 +965,8 @@ Successfully found at {combined}!
 __________________________________________________________\\/
 ▼ Extra commands ▼                                         |
                                                            | 
-1) Return to BnuuyPlayer                                   |
-2) Add another folder.                                     |
+1) Add anoBnuuyPlayer.                                     |
+0) Return to BnuuyPlayer.                                  |
 ___________________________________________________________|
 
 >>> """))
@@ -1643,8 +1680,12 @@ Info: {hint}|
                 )
             elif choice == "2":
                 function()
-            else:
+            elif choice == "e":
                 function(directory)
+            else:
+                audio_thrd = threading.Thread(target=audio_funct, args=(directory,), daemon=True)
+                audio_thrd.start()
+                audio_thrd.join()
 
         except KeyError:
             print("\nInvalid input.")
