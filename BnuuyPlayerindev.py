@@ -4,6 +4,8 @@ import sys
 import json
 import threading
 import time
+import traceback
+from shutil import rmtree
 
 try:
     import requests
@@ -17,6 +19,8 @@ except ModuleNotFoundError as e:
 # Inline comments like this are treated as 'How', and 'Why'
 """Docstrings like this are treated as footnotes on what something does, not why"""
 #### Comments with 4 hashes are titles. ####
+
+############# Comments like this are important section titles #############
 
 
 #### CUST EXCEPTIONS ####
@@ -73,8 +77,6 @@ class BnuuyPlayer:
         self.initialized = False
         self.shuffl = [False, "placeholder"]
         self.time_used = 0
-        # used when printing plsylists if it only needs local
-        self.local_only = False
 
         # Bulk save handles saving, song paths is used in playlist picker
         self.song_paths = {}
@@ -146,12 +148,10 @@ l cycle-values loop-file inf no"""
     """BnuuyPlayer time used"""
     # Currently unimplemented, this will run on startup in a separate thread 
     # to show the user a stat on how long they've been using BnuuyPlayer.
-    # Currently known issue) Dosent save before quit
     def time_counter(self):
         while True:
             self.time_used += 1
             time.sleep(1)
-            continue
 
 
     #### KEYBIND CREATOR ####
@@ -296,7 +296,6 @@ ___________________________________________________________|
 
                 self.binding_menu()
                 subprocess.run(player, check=True)
-                self.term_cleaner()
 
             except(subprocess.CalledProcessError) as e:
                 print(f"Error occurred during playback! Error msg: {e}")
@@ -331,30 +330,145 @@ ___________________________________________________________|
     #        print(json.loads(result))
     #        time.sleep(3)
 
+    
+    def key_prepend(self, num, tupl):
+
+        # Prepends the original key back into the tuple
+        key_adder = list(tupl)
+        key_adder.insert(0, num)
+        tupl = tuple(key_adder)
+        return tupl
+
 
     #### LIBRARY PRINTER ####
 
-    def lib_print(self):
-        countr = 0
+    def lib_print(self, local_only=False):
+        local_countr = 0
+        stream_countr = 0 
+        full_countr = 0
+
         local_dict = {}
+        stream_dict = {}
+        folder_dict = {}
+
+        # This is meant to be overwritten by the for loop.
+        # The code will use it to know if there isnt any playlists
+        num = None
 
         # prints every playlist/streamed playlist and song 
-        # checks how long the tuple is, 3 = local, otherwise stream
+        # checks if is stream is false, if it isnt then its likely online
+        print("__________________________________________________________/\\")
+        print("▼ Playlists ▼\n")
         for num, tupl in self.song_paths.items():
-            if len(tupl) == 3:
-                name, _, _, = tupl 
+            if tupl[0] == "Folder":
+                folder_dict[num] = self.song_paths[num]
+                continue
+
+            (name, path, is_stream, funct) = tupl
+
+            # Begins sorting into the ints and dicts above
+            if is_stream is False:
+
                 print(f"{num}) {name}")
-                countr += 1
-                local_dict[countr] = num, tupl
+                local_countr += 1
 
-            elif len(tupl) == 4 and not self.local_only:
-                name, _, _, _ = tupl 
-                print(f"{num}) {name} (Online stream.)")
-                countr += 1 
+                tupl = self.key_prepend(num, tupl)
 
-        self.local_only = False
+                local_dict[num] = tupl
 
-        return countr, local_dict
+            elif is_stream is True:
+
+                if not local_only:
+                    print(f"{num}) {name} (Online stream.)")
+                stream_countr += 1 
+
+                tupl = self.key_prepend(num, tupl)
+                stream_dict[num] = tupl
+
+        if num is None:
+            print("No playlists.")
+
+        else:
+            # Simply uses the last number from the for loop rather then incrementing
+            full_countr = num
+
+        # Combines the dicts into tmp and reenumerates the keys
+        # This also has the side-effect of auto sorting stream/local.
+        tmp_full_dict = local_dict | stream_dict
+
+        full_dict = {i: v for i, v in enumerate(tmp_full_dict.values(), start=1)}
+
+        # Removes the og key from full dict.
+        tmp_dict = {}
+
+        for num, tupl in full_dict.items():
+            _, name, path, is_stream, funct = tupl 
+            tmp_dict[num] = (name, path, is_stream, funct)
+        full_dict = tmp_dict
+
+        #### FOLDER HANDLER ####
+
+        folder_dict = {i: v for i, v in enumerate(folder_dict.values(), start=len(full_dict)+1)}
+        print("""__________________________________________________________\\/
+▼ Folders ▼                                               /\\""")
+
+
+        if len(folder_dict) >= 1:
+            for num, tupl in folder_dict.items():
+                print(f"{num}) {tupl[1]} ({tupl[0]})")
+
+        else:
+            print("No folders found.")
+
+        # We dont neee to reenumerate here as it was already done earlier.
+        full_dict = full_dict | folder_dict
+
+        print_results = {
+            "full_dict": full_dict,
+            "stream_dict": stream_dict,
+            "local_dict": local_dict,
+            "folder_dict": folder_dict,
+
+            "full_countr": full_countr,
+            "stream_countr": stream_countr,
+            "local_countr": local_countr,
+            }
+
+        return print_results
+
+    #### FOLDER MANAGER ####
+    def folder_manager(self, tupl):
+        while True:
+            try:
+
+                self.term_cleaner()
+                name = tupl[1]
+                print(f"""
+__________________________________________________________ 
+▼ Playlists in {name} ▼                                  /\\""")
+
+                # Folders contain keys of playlists rather then full tuples.
+                for key in tupl[2:]:
+                    name, path, is_stream, function = self.song_paths[key]
+                    print(f"{key}) {name}")
+
+                # If the folder is empty
+                if len(tupl) == 2: print("No playlists in the folder.")
+
+                choice = int(input("""
+___________________________________________________________\\/
+▼ Extra commands ▼                                         |
+                                                           |
+0) Return                                                  |
+___________________________________________________________|"""))
+
+                return self.song_paths[choice]
+
+
+            # temp debug code
+            except Exception as e:
+                raise e
+
 
 
     #### PLAYLIST PICKER ####
@@ -367,8 +481,7 @@ ___________________________________________________________|
                 countr = 0
 
                 self.term_cleaner()
-                print("__________________________________________________________/\\")
-                self.lib_print()
+                self.lib_print(local_only=False)
 
                 choice = int(input("""
 __________________________________________________________\\/
@@ -389,11 +502,17 @@ ___________________________________________________________|
                     self.term_cleaner()
                     return choice, countr
 
+                
+                tupl = self.song_paths[choice]
+                if tupl[0] == "Folder":
+                    num, path, is_stream, function = self.folder_manager(tupl)
+                else: 
+                    name, path, is_stream, function = tupl
+
                 # prints every local song in current song path playlist
                 # splits the extension from songname, compares to invalid ext
                 # if it is in invalid ext it skips, otherwise print
-                try:
-                    name, path, function = self.song_paths[choice]
+                if is_stream is False:
                     invalid_ext = {".midi", ".mid", ".mod", ".xm", ".s3m", ".wma", ".lrc"}
                     for song in os.listdir(path):
                         filename, ext = os.path.splitext(song)
@@ -403,13 +522,11 @@ ___________________________________________________________|
                             countr += 1
                             print(f"{countr}) {filename}")
                             tmp_song[countr] = filepath
-                    is_stream = False
 
-                except ValueError:
+                else:
                     print(
                     "Warning: Individual song picking is unsupported for streaming due to technical limitations."
                 )
-                    name, path, function, is_stream = self.song_paths[choice]
 
                 # Skips indiv song picker if its streamed
                 if is_stream: pass
@@ -578,76 +695,142 @@ Enter any key to continue.""")
                     os.rename(self.hist_backup2, corr_backup2)
                 break
 
+    #### HIST LOADER ####
+
+    def loader_bunny(self, num):
+        hists = {1: self.hist_path,
+                 2: self.hist_backup1,
+                 3: self.hist_backup2,}
+        try:
+            # attempts to load all hists, an error increments num
+            # incrementing is done by processor
+            path = hists[num]
+
+            with open(path) as f:
+                self.bulk_save = json.load(f)
+
+        except(json.JSONDecodeError, AttributeError, SyntaxError, FileNotFoundError):
+            # Returns back to processor to let it do the job of incrementing
+            pass
+
+    #### BUNNY RECOVERER ####
+
+    def recovery_bunny(self, values):
+        recov_attempts = 1
+
+        recovered = {}
+        failed = {}
+        for key, method in values.items():
+
+
+            while True:
+
+                if self.bulk_save.get(key) is not None:
+
+                    # Attempts to reassign the attribute to the newest file.
+                    setattr(self, method, self.bulk_save.get(key))
+                    recovered[key] = method
+                    recov_attempts = 1
+                    break
+
+                elif recov_attempts == 4:
+
+                    failed[key] = method
+                    # Resets back to 1
+                    recov_attempts = 1
+                    break 
+
+                else: 
+                    self.loader_bunny(recov_attempts)
+                    recov_attempts += 1 
+                    continue
+
+        return failed, recovered
+
+
+
     #### LOADSAVE FILE LOADER ####
 
     def processor(self):
-        self.song_paths = self.bulk_save.get("0")
-        self.initialized = self.bulk_save.get("1", True)
-        self.no_hint = self.bulk_save.get("2")
-        self.shuffl = self.bulk_save.get("3")
-        self.time_used = self.bulk_save.get("4")
+        recov_attempts = 1
 
-        while True:
-            """Song paths recoverer"""
-            if self.song_paths is None:
+        self.loader_bunny(recov_attempts)
 
-                # Reenumerates and creates a temp dict for recovery
-                res = {i: v for i, v in enumerate(self.bulk_save.values(), start=0)}
+        # Dict keys match the JSON keys.
+        lookup_registry = {
+        "0": "song_paths",
+        "1": "initialized",
+        "2": "no_hint",
+        "3": "shuffl",
+        "4": "time_used",
+        }
 
-                try:
+        failed_keys = {}
 
-                    for key in res:
-                        # searches for a dict(the song paths is the only dict)
-                        self.song_paths = res.get(key)
+        for key, item in lookup_registry.items():
+            # equivalent to e.g: self.song_paths = self.bulk_save.get("0")
+            # setattr is required as self.item = ... would create an attribute 
+            # named item rather than interacting with the actual items.
+            setattr(self, item, self.bulk_save.get(key))
 
-                        if isinstance(self.song_paths, dict):
-
-                            # If theres nothing in their library, assume newstart
-                            if len(self.song_paths) < 1:
-                                raise NewStart(self.bnuy_path)
-
-                            else:
-                                print("Corruption occurred, but BnuuyPlayer recovery successfully recovered your library, some entries may be missing.")
-
-                                """Writes recovered song paths to disk and esc"""
-                                self.bulk_save[0] = self.song_paths
-                                with open(self.hist_path, "w") as f:
-                                    json.dump(self.bulk_save, f, indent=2)
-
-                                    # File closes as escape is raised
-                                    # Escapes and reattempts load
-                                    raise Escape
-                # Attempts to recheck the history to ensure integrity
-                except Escape:
-                    continue
+            # Checks for corrupted or failed keys, compiles to failed_keys
+            if self.bulk_save.get(key) is None:
+                failed_keys[key] = item
 
 
-                self.corr_backup()
-
-                # Only reachable song_paths is None and theres no dict in bulk_save
-                raise RareError
-
-            # defaults to False if no_hint is missing
-            if self.no_hint is None:
-                print("No hint toggle was corrupted or deleted, defaulting to off...")
-                self.no_hint = False
+        """Song paths recoverer"""
+        # this is used to make self.shuffl a list as a flag
+        make_list = False
 
 
-            # same as above for shuffle
-            if self.shuffl is None:
-                print("Shuffle was corrupted or deleted, attemping recovery.")
-                self.shuffl = [False, "placeholder"]
+        if len(failed_keys) >= recov_attempts:
 
-            if self.time_used is None:
-                print("debug, replace with recovery")
-                self.time_used = 0
+                failed, recovered = self.recovery_bunny(failed_keys)
 
-            break
+                if "0" in failed:
+                    """Song paths check"""
+                    self.corr_backup()
+                    return
 
-        """Gives up if no playlists"""
-        # If the song paths are empty, give up, otherwise keep recovering
-        if len(self.song_paths) < 1:
-            pass
+                if "3" in failed: 
+                    """Shuffl check"""
+                    make_list = True
+
+                if "4" in failed: 
+                    """Time used check"""
+                    print("Your time stat was corrupted/unrecoverable, setting to 0.")
+                    self.time_used = 0
+
+                
+                for key, method in failed.items():
+                    while True:
+                        if key == "1" or key == "3":
+                            choices = {
+                                "1": True, 
+                                "2": False,
+                                }
+
+                            select = input(f"""A JSON entry was corrupted!
+Entry) {method}
+
+1) Set it to the True/on position.
+2) Set it to the False/off position.""")
+
+                            self.term_cleaner()
+
+                            selected_bool = choices.get(select)
+
+                            if selected_bool is None:
+                                self.term_cleaner()
+                                print("Invalid input!\n")
+                                continue
+
+                            if make_list:
+                                selected_bool = [selected_bool, "placeholder"]
+
+                            setattr(self, method, selected_bool)
+
+                        else: break
 
 
         tmp_handler = {}
@@ -657,17 +840,24 @@ Enter any key to continue.""")
         invalid_countr = 0
         
         """Playlist corr/valid sorter"""
-        # Attempts to recover playlists, if it fails or the values are too high
+        # Attempts to recover playlists, if it fails
         # it adds 1 to invalid countr, then adds it to err paths
         # if the playlist is recovered successfully, its put into tmp handler
         for num, tupl in self.song_paths.items():
-            if len(tupl) == 2:
-                name, combined = tupl
-                tmp_handler[num] = (name, combined, self.audio_funct)
+
+            # This doesnt require integrity checks as it stores keys.
+            if tupl[0] == "Folder":
+                tmp_handler[num] = tupl
 
             elif len(tupl) == 3:
-                name, combined, is_stream = tupl
-                tmp_handler[num] = (name, combined, self.audio_funct, is_stream)
+                name, path, is_stream = tupl
+
+                # Sorts working and non working paths, bad ones are DELETED
+                if os.path.isdir(path) or is_stream is True:
+                    tmp_handler[num] = (name, path, is_stream, self.audio_funct)
+                else:
+                    print(f"Found a invalid save at {path} \ndeleting to prevent bugs..")
+                    del_dict[num] = num, tupl
 
             else:
                 invalid_countr += 1
@@ -676,14 +866,6 @@ Found {invalid_countr} invalid save paths.
 Corrupted/edited path) {tupl}""")
 
                 err_paths[len(err_paths) + 1] = tupl
-
-            """Deleted folders compiler"""
-            # compiles any deleted folders outside of BnuuyPlayer
-            # only does this for locals playlists
-            if len(tupl) == 2 and not os.path.isdir(combined):
-                print(f"""\nFound a deleted or corrupted folder at {combined}
-Deleting to prevent bugs..\n""")
-                del_dict[num] = num, tupl 
 
         if len(err_paths) > 0:
             print(f"Invalid saves list; {err_paths}")
@@ -708,78 +890,17 @@ Deleting to prevent bugs..\n""")
     #### PERSISTENT HIST CREATOR ####
 
     def hist_creator(self):
+        """Hist creator/checker/loader"""
+        # Pulled from self, checks if the jsons actually exists.
+        # If it doesnt exist, raise NewStart
         try:
-            """Hist creator/checker/loader"""
-            # Pulled from self, checks if the jsons actually exists.
-            # If it doesnt exist, raise NewStart
-        
             if not os.path.isfile(self.hist_path) and not os.path.isfile(self.hist_backup2) and not os.path.isfile(self.hist_backup1): 
                 raise NewStart(self.bnuy_path)
 
-            with open(self.hist_path, "r") as f:
-                self.bulk_save = json.load(f)
-
-            try: self.processor()
-            # No song paths found in manual recov path attempts corr backup
-            except RareError: self.corr_backup()
-
-
-
-        except(json.JSONDecodeError, AttributeError, SyntaxError, FileNotFoundError):
-            print("Original JSON was corrupted, Attempting recovery..")
-
-            backup_attempts = 1
-
-            while True:
-
-
-                """JSON backup loader/corrupted backuper"""
-                # Attempts to load backups, if all fail it'll initiate unrecoverable
-                # backups and allow the user to manually recover,
-                # Loops until it hits above 2(for both backups) or a successful load
-                # break Only runs if no exception is raised by JSON 
-                # If break runs, it likely means the load was successful
-                try:
-
-                    # Attempts to load 1st backup
-                    if backup_attempts == 1:
-                        with open(self.hist_backup1, "r") as f:
-                            self.bulk_save = json.load(f)
-                        break
-
-                    # Attempts to load 2nd backup
-                    elif backup_attempts == 2:
-                        with open(self.hist_backup2, "r") as f:
-                            self.bulk_save = json.load(f)
-                        break
-
-                    # No working backup found, giveup and init corr_backup
-                    else:
-                        self.corr_backup()
-                        self.initialized = False
-                        break
-
-                except(json.JSONDecodeError,
-                       SyntaxError, 
-                       AttributeError, 
-                       FileNotFoundError):
-                    backup_attempts += 1
-                    continue
+            self.processor()
 
         except NewStart as e:
             e.create_hist()
-
-            # This works just by stopping the funct and allowing the if/else at the bottom pick.
-            if not self.initialized:
-                pass
-
-            else: 
-                print("Recovery successful! You may keep using BnuuyPlayer as normal.\n")
-                try: self.processor()
-
-                # corr_backup already handles user messaging and files 
-                # therefore pass is used
-                except RareError: pass
 
 
 
@@ -791,26 +912,27 @@ Deleting to prevent bugs..\n""")
 
     def saver(self):
         tmp_handler = {}
+        tmp_folder_dict = {}
         self.bulk_save = {}
         tmp_path = os.path.join(self.bnuy_path, "BnuyPlayerHist.json.tmp")
 
         """Save compiler"""
         # Compiles every playlist into a temp dict to be saved.
         for num, tupl in self.song_paths.items():
-            check = len(tupl)
-            if check == 3:
-                name, combined, _ = tupl
-                tmp_handler[num] = (name, combined)
+
+            if tupl[0] == "Folder":
+                tmp_handler[num] = tupl
+
             else:
-                name, combined, _, is_stream = tupl
+                (name, combined, is_stream, _) = tupl
                 tmp_handler[num] = (name, combined, is_stream)
 
         # Assigns a local version of self.song_paths with audio_funct stripped
-        local_song_paths = tmp_handler
+        save_song_paths = tmp_handler
 
         """Bulk save build"""
         # Compiles bulk save.
-        self.bulk_save[0] = local_song_paths
+        self.bulk_save[0] = save_song_paths
         self.bulk_save[1] = self.initialized
         self.bulk_save[2] = self.no_hint
         self.bulk_save[3] = self.shuffl
@@ -887,6 +1009,7 @@ Please rename the folder or delete it to use BnuuyPlayer.""")
 
     def path_adder(self):
         self.term_cleaner()
+        is_stream = False
         while True:
             try:
                 path_input = input("""
@@ -952,7 +1075,7 @@ ___________________________________________________________|
                             continue
 
                     # Save to song paths, write to disk, flip initializer if false
-                    self.song_paths[len(self.song_paths)+1] = (playlist_name, path_input, self.audio_funct)
+                    self.song_paths[len(self.song_paths)+1] = (playlist_name, path_input, is_stream, self.audio_funct)
 
                     self.saver()
                     self.term_cleaner()
@@ -986,6 +1109,7 @@ ___________________________________________________________|
 
 
     def folder_maker(self):
+        is_stream = False
         self.term_cleaner()
         while True:
             try:
@@ -1012,7 +1136,7 @@ ___________________________________________________________|
                     song_path = os.path.join(self.bnuy_path, folder_name)
                     os.makedirs(song_path)
 
-                    self.song_paths[len(self.song_paths) + 1] = (folder_name, song_path, self.audio_funct)
+                    self.song_paths[len(self.song_paths) + 1] = (folder_name, song_path, is_stream, self.audio_funct)
                     self.saver()
 
                     self.term_cleaner()
@@ -1099,9 +1223,9 @@ ___________________________________________________________|""")
     def song_searcher(self):
         self.term_cleaner()
         while True:
-            song_path_len = 0 
+            is_stream = False
             countr = 0
-            song_path_len += len(self.song_paths)
+            song_path_len = len(self.song_paths)
 
             
             """Folder printer"""
@@ -1115,6 +1239,7 @@ ___________________________________________________________|
             
             for file in os.listdir(self.bnuy_path):
 
+                file = os.path.join(self.bnuy_path, file)
                 if os.path.isdir(file):
                     print(f"{file}")
                     countr += 1
@@ -1149,7 +1274,7 @@ ___________________________________________________________|
                         res_len += 1
 
                         combined = os.path.join(root, name)
-                        results[res_len] = (name, combined, self.audio_funct)
+                        results[res_len] = (name, combined, is_stream, self.audio_funct)
 
 
                 # If multiple folders are found, print every root and key 
@@ -1158,7 +1283,7 @@ ___________________________________________________________|
                     print("\nMultiple folders found!")
 
                     while True:
-                        for key, (name, root, _) in results.items():
+                        for key, (name, root, _, _) in results.items():
                             print(f"{key}) found at: {root}")
                         choice = int(input("""
 ___________________________________________________________
@@ -1175,22 +1300,22 @@ ___________________________________________________________|
 
                     # writes every found entry into playlists
                     if choice == 0:
-                        for key, (name, root, _) in results.items():
+                        for key, (name, root, _, _) in results.items():
                             song_path_len += 1
-                            self.song_paths[song_path_len] = (name, root, self.audio_funct)
+                            self.song_paths[song_path_len] = (name, root, is_stream, self.audio_funct)
                             combined = root
 
                     # write chosen one into playlists
                     else:
                         song_path_len += 1
-                        name, root, _ = results[choice]
-                        self.song_paths[song_path_len] = (name, root, self.audio_funct)
+                        name, root, _, _ = results[choice]
+                        self.song_paths[song_path_len] = (name, root, is_stream, self.audio_funct)
                         combined = root
 
                 # if only 1 is found, write immediately
                 elif len(results) == 1:
                     song_path_len += 1
-                    _, combined, _ = results[1]
+                    _, combined, _, _ = results[1]
                     self.song_paths[song_path_len] = results[1]
 
                 else:
@@ -1232,7 +1357,7 @@ ___________________________________________________________|
 
     """LRC downloader"""
 
-    # d contains information from yt-dlp, which my code then gets the informatuin
+    # d contains information from yt-dlp, which my code then gets the information
     # needed for a lrclib API lookup for lyrics.
     # Additional note; plainLyrics are currently unsupported by MPV, but V6 will
     # fix that via IPC
@@ -1263,7 +1388,7 @@ ___________________________________________________________|
                 lyricsync = data.get('syncedLyrics')
                 lyricplain = data.get('plainLyrics')
 
-                print(f"\n\nAttempting to download lyrics..")
+                print("\n\nAttempting to fetch lyrics..")
 
 
                 # Attempt to find lrc format, if none are found inform and quit
@@ -1285,16 +1410,15 @@ ___________________________________________________________|
                 lrc_path = os.path.join(os.path.dirname(d["filename"]), f"{base_name}.lrc")
 
 
-                if lyric is not None:
-                    with open(lrc_path, "w") as f:
-                        f.write(lyric)
+                with open(lrc_path, "w") as f:
+                    f.write(lyric)
                 # 404 means no lyrics found as per lrclib responses
 
             elif lrc_get.status_code == 404:
                 print("\n No lyrics found!")
 
             else:
-                print(f"\nUnknown error) {lrc_get.status_code}")
+                print(f"\nUnknown error) {lrc_get.status_code} \n Lyrics not saved.")
 
     #### YOUTUBE DOWNLOADER/STREAMER ####
 
@@ -1424,7 +1548,7 @@ ___________________________________________________________
 
                 if choice == 1:
                     self.term_cleaner()
-                    choice = int(input("""
+                    dl_location = int(input("""
 ___________________________________________________________
 Where would you like to download the file(s)?              |
 ___________________________________________________________|
@@ -1436,23 +1560,23 @@ ___________________________________________________________|
 ___________________________________________________________|
 
 >>> """))
-                    match choice:
+                    match dl_location:
                         case 1:
 
                             self.term_cleaner()
 
                             # prints every playlist and writes to tmp_dict
-                            self.local_only = True
 
-                            modular_print = self.lib_print()
+                            print_results = self.lib_print(local_only=True)
 
-                            countr, tmp_dict = modular_print
+                            countr = print_results.get("local_countr")
+                            local_dict = print_results.get("local_dict")
 
                             # if no playlists this runs
-                            if len(tmp_dict) < 1:
+                            if len(local_dict) < 1:
                                 print("\nNo playlists currently available.")
 
-                            choice = int(input("""
+                            dl_dest = int(input("""
 ___________________________________________________________
 Pick a playlist.                                           |
 ___________________________________________________________|
@@ -1463,8 +1587,8 @@ ___________________________________________________________|
 
 >>> """))
                             # selects the playlist from tmp via dict unpacking
-                            if choice != 0:
-                                num, (name, path, _) = tmp_dict[choice]
+                            if dl_dest != 0:
+                                (key, name, path, _, _) = local_dict[dl_dest]
 
                             else:
                                 continue
@@ -1505,19 +1629,18 @@ ___________________________________________________________|
 
 >>> """)
                             # if user selects 0, use folder name
-                            if disp_name == "0":
-                                self.song_paths[len(self.song_paths) + 1] = (
-                                    folder_name,
-                                    path,
-                                    self.audio_funct,
-                                )
                             # else use disp name
-                            else:
-                                self.song_paths[len(self.song_paths) + 1] = (
-                                    disp_name,
-                                    path,
-                                    self.audio_funct,
-                                )
+                            name = None
+                            if disp_name == "0": name = folder_name
+                            else: name = disp_name
+
+                            is_stream = False
+                            self.song_paths[len(self.song_paths) + 1] = (
+                                f"{name}",
+                                path,
+                                is_stream,
+                                self.audio_funct,
+                             )
 
                         # return to last menu
                         case 0:
@@ -1582,40 +1705,35 @@ Warning: Do not include a dot when entering the file extension.
                         "ivf",
                         }
 
+                        yt_opts = {
+                                "outtmpl": f"{path}/%(title)s.%(ext)s",
+                                "format": "bestaudio/best",
+                                "progress_hooks": [self.yt_hook],
+                                "ignoreerrors": True,
+                                "no_warnings": True,
+                                }
+                        yt_processor = {
+                            "postprocessors": [{
+                                "key": "FFmpegExtractAudio",
+                                "preferredcodec": ext,}],
+                            }
+
                         if "." in ext:
                             print("Invalid ext, do not include a dot!")
                             continue
 
                         # deletes folder to prevent orphaned folders
                         elif ext == "0":
-                            if choice == 2:
+                            if dl_location == 2:
                                 os.rmdir(path)
                             break
 
                         # if its a audio format; use postprocessors, else dont
                         elif ext not in vid_ext:
-                            yt_opts = {
-                                "outtmpl": f"{path}/%(title)s.%(ext)s",
-                                "format": "bestaudio/best",
-                                "progress_hooks": [self.yt_hook],
-                                "ignoreerrors": True,
-                                "no_warnings": True,
-                                "postprocessors": [
-                                    {
-                                        "key": "FFmpegExtractAudio",
-                                        "preferredcodec": ext,
-                                    }
-                                ],
-                            }
+                            yt_opts.update(yt_processor)
 
                         else:
-                            yt_opts = {
-                                "ignoreerrors": True,
-                                "no_warnings": True,
-                                "outtmpl": f"{path}/%(title)s.%(ext)s",
-                                "progress_hooks": [self.yt_hook],
-                                "format": f"best[ext={ext}]",
-                            }
+                            yt_opts["format"] = f"best[ext={ext}]"
 
                         self.term_cleaner()
 
@@ -1668,8 +1786,8 @@ ___________________________________________________________|
                     self.song_paths[song_path_len] = (
                         name_choice,
                         url_inp,
-                        self.audio_funct,
                         is_stream,
+                        self.audio_funct,
                     )
 
                     self.saver()
@@ -1686,24 +1804,269 @@ ___________________________________________________________|
                 print("\nInvalid input.")
                 continue
 
+    #### FOLDER METHODS ####
+
+    def create_folder(self):
+        while True:
+            try:
+                self.term_cleaner()
+                folder_name = input("""
+___________________________________________________________ 
+Enter a name for the folder                                |
+___________________________________________________________|
+▼ Extra commands ▼                                         |
+                                                           |
+0) Return                                                  |
+___________________________________________________________|
+
+>>> """)
+
+                if folder_name == "0": break
+
+                # This is used to identify folders 
+                # This works as reg playlists always are a tuple in the 0 index 
+                # while the 0 index in folders are a str to differentiate 
+                folder_id = "Folder"
+                tmp_list = []
+                tmp_list.append(folder_id)
+                tmp_list.append(folder_name)
+
+                self.song_paths[len(self.song_paths)+1] = tmp_list
+
+                self.term_cleaner()
+
+                while True:
+
+                    self.saver()
+                    choice = input("""Successfully created folder!\n 
+___________________________________________________________ 
+▼ Commands ▼                                               |
+                                                           |
+1) Create another folder                                   |
+0) Return                                                  |
+___________________________________________________________|
+
+>>> """)
+
+                    match choice:
+                        case "1": break
+                        case "0":  raise Escape
+                        case _: 
+                            print("Invalid input!")
+                            continue
+
+            except Escape:
+                break
+
+    def folder_adder(self):
+        pass
+
+
+    #### INTERNAL PLAYLIST EDITOR ####
+
+    def internal_delete(self, num):
+        del self.song_paths[num]
+
+        # reenumerates song_paths keys
+        res = {i: v for i, v in enumerate(self.song_paths.values(), start=1)}
+
+        # empty song paths and refills with updated dict
+        self.song_paths.clear()
+        self.song_paths.update(res)
+
+        self.saver()
+
+
+    #### PLAYLIST SETTINGS #### 
+    def playlist_settings(self):
+        while True:
+            try:
+                choice = int(input("""
+___________________________________________________________ 
+▼ Folder settings ▼                                        |
+                                                           |
+1) Create a folder                                         |
+2) Move playlist into a folder                             |
+3) Delete a folder                                         |
+___________________________________________________________| 
+▼ Playlist settings ▼                                      |
+                                                           |
+4) Delete a playlist from BnuuyPlayer                      |
+5) Delete a playlist from disk                             |
+6) Add a playlist                                          |
+7) Edit a playlist name                                    |
+___________________________________________________________|
+▼ Other ▼                                                  |
+                                                           |
+8) Delete a Individual song(deletes from disk)             |
+___________________________________________________________|
+▼ Extra commands ▼                                         |
+                                                           |
+0) Back                                                    |
+___________________________________________________________|
+
+>>> """))
+
+                self.term_cleaner()
+
+                match choice:
+
+                    #### Extra commands ####
+                    case 0: 
+                        """Return"""
+                        break
+
+                    #### Folder settings ####
+                    case 1:
+                        """Create folder"""
+                        self.create_folder()
+
+                    case 2:
+                        """Move playlist to folder"""
+                        print("Folders unimplemented")
+                    
+                    case 3:
+                        """Delete folder"""
+                        print("Folders unimplemented")
+
+                    #### Playlist settings ####
+                    case 4:
+                        self.term_cleaner()
+                        """Delete a playlist"""
+                        print("___________________________________________________________/\\")
+                        self.lib_print(local_only=False)
+
+                        del_choice = int(input("""
+___________________________________________________________ 
+                                                           \\/
+Which would you like to delete?                            |
+(This only deletes the playlist from BnuuyPlayer!)         |
+___________________________________________________________|
+▼ Extra commands ▼                                         |
+0) return                                                  |
+___________________________________________________________|
+
+>>>"""))
+
+                        if del_choice == 0: continue
+
+                        else:
+                            self.term_cleaner()
+
+                            self.internal_delete(del_choice)
+
+                            print("Successfully deleted!")
+                            continue
+
+                    case 5:
+                        """Delete playlist from disk"""
+                        confirm = int(input("""Are you sure? this is permanent.
+1) Yes
+0) No/Back
+
+>>> """))
+
+                        if confirm == 1:
+                            print("___________________________________________________________/\\")
+                            # Sets it to only compile and print local playlists
+
+                            results = self.lib_print(local_only=True)
+                            # assigns values
+                            local_paths = results.get("local_dict")
+                            countr = results.get("local_countr")
+                            # lib print sets local back to False as a side effect
+
+                            del_choice = int(input("""__________________________________________________________
+Which playlist would you like to delete?                   \\/
+___________________________________________________________|
+▼ Extra commands ▼                                         |
+                                                           |
+0) Return                                                  |
+___________________________________________________________|
+
+>>> """))
+
+
+                            if del_choice == 0: continue
+
+                            """Delete processer"""
+                            # find the path, remember name for later
+                            key, delname, path, _, _ = local_paths[del_choice]
+
+                            """Recursive delete"""
+                            rmtree(path)
+
+                            """Library updater"""
+                            # Reindexes and deletes selected playlist
+                            self.internal_delete(key)
+                            print("Successfully deleted!")
+
+                        elif confirm == 0:
+                            self.term_cleaner()
+                            continue
+
+                        else:
+                            print("Invalid input.")
+                            continue
+
+
+                    case 6: 
+                        """Add a playlist"""
+                        choice = self.adder_menu()
+
+                        if choice == 0: continue # Return to last menu
+
+                        funct = self.adders[choice]
+                        funct()
+
+                    case 7:
+                        """Playlist name edit"""
+                        while True:
+                            try:
+                                print("___________________________________________________________/\\")
+                                results = self.lib_print(local_only=True)
+                                countr = results.get("local_countr")
+                                local_paths = results.get("local_dict")
+
+                                rename_choice = int(input("""
+___________________________________________________________\\/
+Which playlist would you like to rename?                   |
+___________________________________________________________|
+
+>>> """))
+                                if countr > 0 and rename_choice in range(1,countr+1):
+                                    print("success")
+                                    break
+
+                            except ValueError:
+                                print("Invalid input")
+                                continue
+
+
+                    #### OTHER ####
+
+                    case 8:
+                        """Delete song"""
+                        print("unimplemented")
+
+                    case _: raise ValueError 
+
+            except ValueError:
+                print("Invalid input!")
+                traceback.print_exc()
+                continue
 
     #### SETTINGS / NON-MUSIC ####
     def settings(self):
         while True:
             try:
 
-                # TODO: 
-                # 1) Move playlist settings into subsection
                 choice = int(input("""
 ___________________________________________________________
 ▼ Commands ▼                                               |
                                                            |
 1) Toggle shuffle. (This is saved between sessions!)       |
-2) Delete a playlist from BnuuyPlayer.                     |
-3) Delete a playlist from disk.                            |
-4) Delete a song from disk                                 |
-5) Add a playlist.                                         |
-6) Add a song to a playlist individually                   |
+2) Playlist sub settings                                   |
 0) Return.                                                 |
 ___________________________________________________________|
 
@@ -1729,60 +2092,9 @@ ___________________________________________________________|
                     continue
 
                 elif choice == 2:
-                    """Delete playlist from BnuuyPlayer"""
-                    print("___________________________________________________________/\\")
-                    self.lib_print()
+                    """Playlist sub settings"""
+                    self.playlist_settings()
 
-                    del_choice = int(input("""
-___________________________________________________________
-                                                           \\/
-Which would you like to delete?                            |
-(This only deletes the playlist from BnuuyPlayer!)         |
-___________________________________________________________|
-▼ Extra commands ▼                                         |
-0) return                                                  |
-___________________________________________________________|
-
->>> """))
-
-                    self.term_cleaner()
-                    if del_choice == 0:
-                        continue
-                    else:
-                        del self.song_paths[del_choice]
-
-                        # reenumerates song_paths keys
-                        res = {i: v for i, v in enumerate(self.song_paths.values(), start=1)}
-                        self.song_paths.clear()
-                        self.song_paths.update(res)
-
-                        print("Successfully deleted!\n")
-                        self.saver()
-
-                        continue
-
-                elif choice == 3:
-                    """Delete playlist from disk"""
-                    print("Delete playlist from disk unimplemented")
-                    continue
-
-                elif choice == 4:
-                    """Delete individual song"""
-                    print("Del song from disk unimplemented")
-                    continue
-
-                elif choice == 5:
-                    """Add a playlist"""
-                    choice = self.adder_menu()
-                    if choice == 0:
-                        continue
-
-                    funct = self.adders[choice]
-                    funct()
-
-                elif choice == 6:
-                    """Add indiv song to playlist"""
-                    print("unimplemented")
 
                 else:
                     raise KeyError
@@ -1919,6 +2231,8 @@ ___________________________________________________________
 
                 self.term_cleaner()
                 name, _, function = self.main_operations[choice]
+                if name == "Exit":
+                    self.saver()
 
                 # Framework for future lrc prettifier
                 if choice == "1":
