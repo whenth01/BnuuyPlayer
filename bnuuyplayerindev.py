@@ -3,6 +3,7 @@ import sys
 import json
 import time
 import shutil
+import difflib
 import threading
 import traceback
 import subprocess
@@ -789,6 +790,43 @@ ___________________________________________________________|
                 print("Invalid input.")
                 return
 
+    #### SEARCH LIBRARY ####
+
+    def investibun_search(self):
+        while True:
+            try:
+                search_query = input("""
+___________________________________________________________
+Search bnuuyplayer for a song/playlist.                    |
+                                                           |
+0) Return                                                  |
+___________________________________________________________|
+
+>>> """)
+
+                playlists = {}
+
+                for tupl in self.song_paths.items():
+                    if self.folder_check(tupl) is True: continue
+
+                    else: 
+                        print(tupl)
+                        name, path, is_stream, _ = tupl
+                        playlists[name] = path, is_stream
+                        print(playlists[name])
+
+                search = difflib.get_close_matches(search_query.lower(), playlists.keys())
+
+                print(search)
+                input()
+
+
+
+            except Exception as e:
+                print(playlists)
+                print(tupl)
+                traceback.print_exc()
+
 
     #### PLAYLIST PICKER ####
 
@@ -802,22 +840,29 @@ ___________________________________________________________|
                 res = self.lib_print(local_only=False)
                 display_keys = res.get("display_keys")
 
-                choice = int(input("""__________________________________________________________\\/
+                choice = input("""__________________________________________________________\\/
 ▼ Extra commands ▼                                         |
                                                            |
+s) Search                                                  |
 0) back                                                    |
 ___________________________________________________________|
 
->>> """))
+>>> """)
 
                 self.term_cleaner()
                 countr = 0
                 tmp_song = {}
 
                 # causes audio funct to raise ValueError, causing a return to main menu
-                if choice == 0:
+                if choice == "0":
                     self.term_cleaner()
                     return choice, countr
+
+                elif choice.lower() == "s":
+                    self.investibun_search()
+                    continue
+
+                else: choice = int(choice)
 
                 # defines values that local song picker requires
                 choice = display_keys[choice][0]
@@ -827,7 +872,8 @@ ___________________________________________________________|
 
                 if self.folder_check(tupl):
                     res = self.folder_manager(tupl)
-                    values = res.get("selected")
+                    if res is not None:
+                        values = res.get("selected")
 
                     # regular route 
                     if values is not None:
