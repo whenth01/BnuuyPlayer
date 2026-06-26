@@ -15,8 +15,15 @@
 - [x] Delete playlists (From disk or internally)
 - [x] Playlist adding(Online download and stream, local files/folders both fully supported)
 - [x] Streamed and local playlists(stored and displayed seperately)
-- [ ] Search for songs and playlists
-- [ ] Mutagen(optional dependency) advanced search, write/read tags, include author in song title automatically, auto download lyrics from preexisting files.
+- [x] Search for songs and playlists
+
+### Mutagen
+- [x] Mutagen(optional dependency)
+- [ ] Advanced Search
+- [ ] Compile every song with a specified tag into a BnuuyFolder
+- [ ] Write new tags
+- [ ] Include author in the song title(in playlist picker)
+- [ ] Download lyrics from preexisting songs(if metadata tags are available)
 
 ### Folders (internal)
 - [x] Internal folder system(Seperate from OS file sys folders for sorting playlists)

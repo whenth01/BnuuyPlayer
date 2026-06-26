@@ -19,6 +19,14 @@ A dependency failed to import or is uninstalled.
 Please run) pip install yt-dlp requests""")
     sys.exit()
 
+try:
+    import mutagen
+    mutagen = True
+except (ModuleNotFoundError, ImportError):
+    print("Mutagen not instslled, some features may be disabled.")
+    print("To install mutagen, run) pip install mutagen")
+    mutagen = False
+
 # Checks if MPV is installed
 check = shutil.which("mpv")
 
@@ -82,7 +90,10 @@ class NewStart(Exception):
 
 class BnuuyPlayer:
 
-    def __init__(self):
+    def __init__(self, mutagen):
+
+        # Assigns the if mutagen is installed bool into self
+        self.mutagen = mutagen
 
         # General config with placeholders, overwritten once processor is done.
         self.no_hint = False
@@ -315,7 +326,7 @@ ___________________________________________________________|
                 self.term_cleaner()
                 continue
             # return from main picker menu
-            elif player == (0, 0): return
+            elif player == ("0", 0): return
             else: break
 
         print("")
@@ -472,7 +483,7 @@ ___________________________________________________________|
         #### Folder printer ####
 
         print("___________________________________________________________\\/")
-        print("▼ Folders ▼                                                /\\\n")
+        print("▼ BnuuyFolders ▼                                           /\\\n")
 
         printed = False
         for disp_num, (og_key, is_folder) in display_keys.items():
@@ -840,8 +851,12 @@ ___________________________________________________________|
 
 >>> """)
 
+                if search_query == "0":
+                    self.term_cleaner()
+                    return
+
                 entries = {}
-                songs = {}
+                songs = []
                 song_handler = False
                 playlist_handler = False
 
@@ -857,16 +872,22 @@ ___________________________________________________________|
 
                     elif search_select == "1":
                         """Songs route"""
-                        if os.path.isdir(path): 
-                            entries[key] = os.listdir(path)
-                            songs = entries[key]
+                        if os.path.isdir(path):
+
+                            compiler = []
+                            for name in os.listdir(path):
+                                split = os.path.splitext(name)[0].lower()
+                                compiler.append(split)
+
+                            entries[key] = compiler
+                            songs += compiler
                             song_handler = True
 
                         else: continue
 
                     else:
                         self.term_cleaner()
-                        print("Invalud input.")
+                        print("Invalid input.")
                         break
 
                 else:
@@ -876,11 +897,9 @@ ___________________________________________________________|
                     if song_handler:
                         # NOTE, CURRENTLY DOES NOT WORM
                         # I am unsure what is going wrong:(
-                        print("THIS CURRENTLY DOES NOT WORK!")
-                        continue
-                        search = set(difflib.get_close_matches(search_query.lower(), *songs, n=8, cutoff=0.5))
+                        search = set(difflib.get_close_matches(search_query.lower(), songs, n=8, cutoff=0.3))
                     else:
-                        search = set(difflib.get_close_matches(search_query.lower(), entries, n=8, cutoff=0.5))
+                        search = set(difflib.get_close_matches(search_query.lower(), entries, n=8, cutoff=0.3))
 
                     self.term_cleaner()
                     if playlist_handler:
@@ -893,7 +912,7 @@ ___________________________________________________________
 
                             if is_stream and name in search: 
                                 print(f"""{num}) {name} (Online stream.)
-(located at {og_key}\n""")
+(located at {og_key})\n""")
 
                             elif name in search: 
                                 print(f"""{num}) {name}
@@ -910,16 +929,63 @@ ___________________________________________________________
                         for key, names in entries.items():
                             playlist_name, _, _, _, = self.song_paths[key]
                             for song_name in names:
-                                if name == search_query:
+                                if song_name in search:
                                     print(f"""{song_name}
 Located at
 Playlist name) {playlist_name}
 Playlist key) {key}\n""")
 
+                    print("""__________________________________________________________\\/""")
 
-            except Exception as e:
-                print(songs)
-                traceback.print_exc()
+            except ValueError:
+                self.term_cleaner()
+                print("Invalid input! :(")
+                continue
+
+    # Mutagen advanced search
+
+    def advanced_investibunny(self):
+        while True:
+            try:
+                tags = {
+                    "artist": "artist",
+                    "title": "title",
+                    "album": "album",
+                    }
+                selection = input("""
+___________________________________________________________
+Enter a tag and what you'd like to search.                 |
+E.g) artist [your query]                                   |
+___________________________________________________________|
+▼ Tags ▼                                                   |
+                                                           |
+artist                                                     |
+album                                                      |
+title                                                      |
+___________________________________________________________|
+▼ Extra commands ▼                                         |
+                                                           |
+0) Return                                                  |
+___________________________________________________________|
+
+>>> """)
+
+                values = selection.split()
+                if values[0] == "0": return
+
+                elif len(values) != 2: raise ValueError
+
+                else:
+                    tag = tags.get(values[0])
+
+                    if tag is None: raise ValueError
+                    print("unfinished")
+                    continue
+
+            except ValueError:
+                self.term_cleaner()
+                print("Invalid input, please read the README.md's help section on this area.")
+                continue
 
 
     #### PLAYLIST PICKER ####
@@ -975,6 +1041,13 @@ ___________________________________________________________|
                         name, path, is_stream, function = values
 
                 else: name, path, is_stream, function = tupl
+
+                if not os.path.isdir(path) and is_stream is False:
+                    self.term_cleaner()
+                    print("The original folder is missing, did you move it or delete it?")
+                    print("Deleting playlist for stability..")
+                    self.internal_delete(display_keys[choice][0])
+                    continue
 
                 picker_skip = False
                 # prints every local song in current song path playlist
@@ -2028,6 +2101,7 @@ ___________________________________________________________|
 
                             """Invalid/wrong URL handler"""
                         except BadURL:
+                            self.term_cleaner()
                             print("""Unsupported domain!\n 
 ___________________________________________________________ 
 ▼ Bnuuyplayer supports ▼                                  /\\""")
@@ -2096,6 +2170,7 @@ ___________________________________________________________|
 
                             self.term_cleaner()
                             while True:
+                                self.term_cleaner()
 
                                 # prints every playlist and writes to tmp_dict
 
@@ -2115,16 +2190,17 @@ Pick a playlist.                                           |
 ___________________________________________________________|
 ▼ Extra commands ▼                                         |
                                                            |
-0) Return.                                                 |
+0) Return. (Note: this return's behavior will be redone)   |
 ___________________________________________________________|
 
 >>> """))
                                     # selects the playlist from tmp via dict unpacking
                                     if dl_dest != 0:
                                         (name, path, _, _) = local_dict[keys[dl_dest][0]]
+                                        break
 
                                     elif dl_dest == 0:
-                                        break
+                                        return
 
                                     else:
                                         self.term_cleaner()
@@ -2202,11 +2278,11 @@ Enter the file extension you'd like.                       |
 ___________________________________________________________|
 ▼ Recommended extensions ▼                                 |
                                                            |
-mp3(Audio)                                                 |
-m4a(Audio)                                                 |
-m4v(Video)                                                 |
-mp4(Video)                                                 |
-webm(Video)                                                |
+mp3     (Audio)                                            |
+m4a     (Audio)                                            |
+m4v     (Video)                                            |
+mp4     (Video)                                            |
+webm    (Video)                                            |
 ___________________________________________________________|
 ▼ Unsupported extensions ▼                                 |
                                                            |
@@ -2227,20 +2303,23 @@ Warning: Do not include a dot when entering the file extension.
                                 "outtmpl": f"{path}/%(title)s.%(ext)s",
                                 "format": "bestaudio/best",
                                 "progress_hooks": [self.yt_hook],
-                                "ignoreerrors": True,
+                                "ignoreerrors": "only_download",
                                 "no_warnings": True,
                                 }
                         yt_processor = {
                             "postprocessors": [{
                                 "key": "FFmpegExtractAudio",
-                                "preferredcodec": ext,}],
+                                "preferredcodec": ext,},
+                                {
+                                "key":"FFmpegMetadata", "add_metadata": True,
+                                }],
                             }
 
                         if "." in ext:
                             print("Invalid ext, do not include a dot!")
                             continue
 
-                        # deletes folder to prevent orphaned folders
+                        # deletes file sys folder to prevent orphaned folders
                         elif ext == "0":
                             if dl_location == 2:
                                 os.rmdir(path)
@@ -2260,12 +2339,12 @@ Warning: Do not include a dot when entering the file extension.
                             with yt_dlp.YoutubeDL(yt_opts) as ydl:
                                 ydl.download(url_inp)
 
-                        except yt_dlp.utils.DownloadError as e:
+                        except (yt_dlp.utils.DownloadError, yt_dlp.utils.PostProcessingError) as e:
                             if "unsupported" in str(e).lower():
                                 print("Unsupported URL, or a invalid URL was inputted.")
                             else:
                                 print(
-                                f"Download failed, error message; {repr(e)}\n\nPlease report the error."
+                                f"Download failed, error message; {repr(e)}\n\nPlease report the error to the github page if its not a connection error."
                                 )
                             continue
 
@@ -2974,7 +3053,8 @@ ___________________________________________________________|
             try:
                 choice = int(input("""
 ___________________________________________________________ 
-▼ Folder settings ▼                                        |
+▼ BnuuyFolder settings ▼                                   |
+(Note: These are not File system folders)                  |
                                                            |
 1) Create a folder                                         |
 2) Move playlist into a folder                             |
@@ -2986,7 +3066,7 @@ ___________________________________________________________|
                                                            |
 6) Delete a playlist from BnuuyPlayer                      |
 7) Delete a playlist from disk                             |
-8) Add a playlist                                          |
+8) Add a playlist/song                                     |
 9) Edit a playlist name                                    |
 ___________________________________________________________|
 ▼ Extra commands ▼                                         |
@@ -3024,7 +3104,7 @@ ___________________________________________________________
 ▼ Commands ▼                                               |
                                                            |
 1) Toggle shuffle. (This is saved between sessions!)       |
-2) Playlist sub settings                                   |
+2) BnuuyFolder/Playlist sub settings                       |
 0) Return.                                                 |
 ___________________________________________________________|
 
@@ -3212,4 +3292,4 @@ ___________________________________________________________
             else:
                 self.main_menu()
 
-bnuystart = BnuuyPlayer()
+bnuystart = BnuuyPlayer(mutagen)

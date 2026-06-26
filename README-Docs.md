@@ -37,11 +37,11 @@ Which is storing the self.song_paths key next to a cleanly ordered one.
     BnuuyPlayer stores folders as a list of pointers to the playlists rather then a full tuple copy to stay storage efficient.
     Essentially
     ```python
-    playlists = {
+    self.song_paths = {
     1: (name, pointer, is_stream, audio_funct)
     2: (name, pointer, is_stream, audio_funct)
-    3: ["Folder", folder_name]
+    3: ["Folder", folder_name, 2, 1]
     }
     ```
     Folders simply append the key of a selected playlist into themself, which the code can then reference as which playlist to open.
-    **Note: "Folder" must always be in a folder entry as the fiest entry, this is what differentiates them from playlists**    
+    **Note: "Folder" must always be in a folder entry as the first entry, this is what differentiates them from playlists**    

@@ -1,55 +1,109 @@
 # BnuuyPlayer guide
 
+**No AI generated code was used.**
+
 **Contributor? View [BnuuyPlayer's documentation](README-Docs)**
 
 **Want to view features? View [BnuuyPlayer's featureset](README-Features)**
 
 **Want to see the current roadmap? View [BnuuyPlayer's roadmap](README-RoadMap)**
 
+**Want to view the changelog? View [BnuuyPlayer's changelog](README-ChangeLog)**
+
 **New to BnuuyPlayer? View below, this will aid you in installation and act as a guide.**
 
 ## Installation 
-Linux
+Linux (Debian, Ubuntu)
 ```bash
-apt install mpv python git
+sudo apt update
+sudo apt install python3 python3-pip mpv git
 ``` 
+
+Linux(Fedora)
+```bash
+sudo dnf update
+sudo dnf install -y python3 python3-pip mpv git
+```
+
+Linux (centOS)
+```bash
+sudo dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-$(rpm -E %rhel).noarch.rpm
+
+sudo dnf install -y https://download1.rpmfusion.org/free/el/rpmfusion-free-release-$(rpm -E %rhel).noarch.rpm
+
+sudo dnf install -y python3 python3-pip mpv git
+```
+
+Linux (Arch)
+```bash
+sudo pacman -Syu
+sudo pacman -S python python-pip mpv git
+```
+
 Windows
 ```bash
-winget install mpv python git
+winget install Git.Git shinchiro.mpv Python.Python.3.13
 ```
 MacOS
 ```bash
-brew install mpv python git
+brew install mpv python3 git
 ```
 Android(termux)
 ```bash
 pkg install mpv python git
 ```
 
+Python verification
+```bash
+python3 --version
+```
+(If this fails, lookup a guide on your specific OS)
+
 Dependency download;
 ```
 pip install yt-dlp requests
 ```
+Optional dependency:
+```
+pip install mutagen
+```
+Mutagen will unlock advanced by artist, album, and other advanced searching/playback.
+This is recommended, as mutagen is only ~400 kB.
+***NOTE: If the pip install fails, then add --break-system-packages to the install.***
+E.g)
+```bash
+pip install yt-dlp requests --break-system-packages
+```
+***Note: What --break-system-packages does ▼
+Newer systems lock Python to stop pip from clashing with OS managed packages, normally pip blocks this with "externally managed environment"
+It's safe here, as yt-dlp, requests and mutagen aren't packages the OS depends on***
+If you don't want to use --break-system-packages, run ▼
+```bash
+python3 -m venv venv && source venv/bin/activate
+```
 
-Now; go to a directory ***(Do not use the home directory.)***
-Linux, Android(termux)
+Now; go to a directory 
+***(Do not use the home directory.)***
+***(BnuuyPlayer will lagspike if you attempt to search for something if you do use the home directory.)***
+
+Linux, Android(termux), MacOS
 ```bash
 cd path/to/your/directory
 ```
-MacOS
-```bash
-cd /Users/<your-username>/path/to/your/directory
-```
 Windows
 ```bash
-cd c:\Users\<your-username>\path\to\your\directory
+cd path\to\your\directory
 ```
 
-Finally;
+Finally, run)
 ```bash
 git clone https://github.com/whenth01/BnuuyPlayer.git
 ```
-***NOTE: This manual clone will be deprecated once BnuuyPlayer is moved into a PyPi package, after V5.1 you can safely delete git.***
+and
+```
+python3 bnuuyplayerindev.py
+```
+***NOTE: This manual clone will be deprecated once BnuuyPlayer is moved into a PyPi package, after V1.1 you can safely delete git, and run BnuuyPlayer by running bnuy***
 
 
 ## Cheatsheet, General advice and help.
@@ -75,6 +129,9 @@ git clone https://github.com/whenth01/BnuuyPlayer.git
 
 
 ### General advice
+
+#### BnuuyFolders
+    BnuuyFolders are not file system folders. They are collections of playlists, and do not affect filesystem nor interact with it.
 
 #### 'Let BnuuyPlayer create a folder' 
     This only creates it within bnuuyplayer's directory.
