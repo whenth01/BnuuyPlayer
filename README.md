@@ -120,9 +120,27 @@ python3 bnuuyplayerindev.py
 #### BnuuyFolders not hiding playlists
     This is currently intentional; BnuuyFolders are an extra layer of organization for the user.
     True containment will come in V2.
+    
+#### Advanced Search tagging
+    Valid advanced searched tags
+    title
+    album
+    artist
 
+    To conduct an advanced search, all you must do is
+    <the tag, e.g album> <your search query>
+    And BnuuyPlayer returns you every song in the specified album.
+    For example,
+    album kick back
+    That will show you every song from the album kick back by SPARKLEWOLF, and offer you a choice to
+    1. Build a new BnuuyFolder with these songs
+    2. Delete the songs.
+    3. Append the tag into the filename
+    4. Locate these songs
+And more. (viewable in [[README-Features]]' mutagen section.)
+    
 #### URL Not working
-    BnuuyPlayer only supports direct URLs, a mirror or shortlink will work. 
+    BnuuyPlayer only supports direct URLs, a mirror or shortlink will not work. 
 
 #### Streamed playlists cant be browsed song by song
     This is currently a known limitation and may be fixed in V2.

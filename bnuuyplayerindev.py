@@ -21,11 +21,11 @@ Please run) pip install yt-dlp requests""")
 
 try:
     import mutagen
-    mutagen = True
+    mutagen_installed = True
 except (ModuleNotFoundError, ImportError):
     print("Mutagen not instslled, some features may be disabled.")
     print("To install mutagen, run) pip install mutagen")
-    mutagen = False
+    mutagen_installed = False
 
 # Checks if MPV is installed
 check = shutil.which("mpv")
@@ -90,10 +90,10 @@ class NewStart(Exception):
 
 class BnuuyPlayer:
 
-    def __init__(self, mutagen):
+    def __init__(self, mutagen_installed):
 
         # Assigns the if mutagen is installed bool into self
-        self.mutagen = mutagen
+        self.mutagen_installed = mutagen_installed
 
         # General config with placeholders, overwritten once processor is done.
         self.no_hint = False
@@ -945,13 +945,17 @@ Playlist key) {key}\n""")
     # Mutagen advanced search
 
     def advanced_investibunny(self):
+        if self.mutagen_installed is False:
+            print("Mutagen is uninstalled. to access this run) pip install mutagen")
+            return
+        invalid_ext = {".midi", ".mid", ".mod", ".xm", ".s3m", ".wma", ".lrc", ".py"}
+        tags = {
+            "artist": "artist",
+            "title": "title",
+            "album": "album",
+            }
         while True:
             try:
-                tags = {
-                    "artist": "artist",
-                    "title": "title",
-                    "album": "album",
-                    }
                 selection = input("""
 ___________________________________________________________
 Enter a tag and what you'd like to search.                 |
@@ -973,16 +977,44 @@ ___________________________________________________________|
                 values = selection.split()
                 if values[0] == "0": return
 
-                elif len(values) != 2: raise ValueError
+                elif len(values) < 2: raise ValueError
 
                 else:
                     tag = tags.get(values[0])
 
                     if tag is None: raise ValueError
-                    print("unfinished")
+
+                    # reconstructs the string 
+                    query = " ".join(values[1:])
+                    metatags = {}
+                    for num, tupl in self.song_paths.items():
+                        if self.folder_check(tupl): continue
+                        
+                        name, path, is_stream, _ = tupl
+                        
+                        if not is_stream:
+                            for file in os.listdir(path):
+                                # filters invalid songs and files
+                                if os.path.splitext(file)[1].lower() in invalid_ext: 
+                                    continue
+                                # collects the metadata
+                                metadata = mutagen.File(os.path.join(path, file), easy=True)
+
+                                if len(metadata) == 0 or metadata is None:
+                                    print(f"{file} had no metadata.")
+                                    continue
+                                else: metatags[len(metatags)+1] = metadata
+
+
+                    print(metadata)
+                    print("debug stuff")
+
                     continue
 
             except ValueError:
+                traceback.print_exc()
+                continue
+                # note: code above is debug code
                 self.term_cleaner()
                 print("Invalid input, please read the README.md's help section on this area.")
                 continue
@@ -1004,6 +1036,7 @@ ___________________________________________________________|
 ▼ Extra commands ▼                                         |
                                                            |
 s) Search                                                  |
+as) Advanced Search (may be slow)                          |
 0) back                                                    |
 ___________________________________________________________|
 
@@ -1020,6 +1053,10 @@ ___________________________________________________________|
 
                 elif choice.lower() == "s":
                     self.investibun_search()
+                    continue
+
+                elif choice.lower() == "as":
+                    self.advanced_investibunny()
                     continue
 
                 else: choice = int(choice)
@@ -3292,4 +3329,4 @@ ___________________________________________________________
             else:
                 self.main_menu()
 
-bnuystart = BnuuyPlayer(mutagen)
+bnuystart = BnuuyPlayer(mutagen_installed)

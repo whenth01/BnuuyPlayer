@@ -18,6 +18,7 @@
 - [x] Search for songs and playlists
 
 ### Mutagen
+***This is currently being developed!***
 - [x] Mutagen(optional dependency)
 - [ ] Advanced Search
 - [ ] Compile every song with a specified tag into a BnuuyFolder

@@ -21,6 +21,7 @@ display_nums = {
 }
 ```
 Which is storing the self.song_paths key next to a cleanly ordered one.
+***Note: These are rebuilt each time self.lib_print is called, this is a known rough edge that will be remade in v1.1***
 
 #### Flat playlists
     BnuuyPlayer handles playlists as tuples structured as
