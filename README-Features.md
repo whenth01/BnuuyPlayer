@@ -20,11 +20,12 @@
 ### Mutagen
 ***This is currently being developed!***
 - [x] Mutagen(optional dependency)
-- [ ] Advanced Search
+- [x] Advanced Search
 - [ ] Compile every song with a specified tag into a BnuuyFolder
 - [ ] Write new tags
 - [ ] Include author in the song title(in playlist picker)
 - [ ] Download lyrics from preexisting songs(if metadata tags are available)
+- [ ] Create a cached database of metadata(using modification time of the file as the marker to recheck or not)
 
 ### Folders (internal)
 - [x] Internal folder system(Seperate from OS file sys folders for sorting playlists)
@@ -64,6 +65,8 @@
 - [x] Toggleable main menu hint
 - [ ] Maximum ram usage by MPV(minimum of 1)
 - [x] First run setup guide
+- [ ] Toggleable --no-video toggle
+- [ ] Site whitelist menu
 
 ### EasterEggs
 - [ ] Hints are in settings.
