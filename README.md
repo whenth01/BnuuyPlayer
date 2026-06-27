@@ -2,13 +2,13 @@
 
 **No AI generated code was used.**
 
-**Contributor? View [BnuuyPlayer's documentation](README-Docs)**
+**Contributor? View [BnuuyPlayer's documentation](README-Docs.md)**
 
-**Want to view features? View [BnuuyPlayer's featureset](README-Features)**
+**Want to view features? View [BnuuyPlayer's featureset](README-Features.md)**
 
-**Want to see the current roadmap? View [BnuuyPlayer's roadmap](README-RoadMap)**
+**Want to see the current roadmap? View [BnuuyPlayer's roadmap](README-RoadMap.md)**
 
-**Want to view the changelog? View [BnuuyPlayer's changelog](README-ChangeLog)**
+**Want to view the changelog? View [BnuuyPlayer's changelog](README-ChangeLog.md)**
 
 **New to BnuuyPlayer? View below, this will aid you in installation and act as a guide.**
 
