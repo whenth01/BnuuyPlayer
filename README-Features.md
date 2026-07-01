@@ -16,18 +16,20 @@
 - [x] Playlist adding(Online download and stream, local files/folders both fully supported)
 - [x] Streamed and local playlists(stored and displayed seperately)
 - [x] Search for songs and playlists
+- [ ] Unlike directly from the liked songs song picker
 
 ### Mutagen
 ***This is currently being developed!***
 - [x] Mutagen(optional dependency)
 - [x] Advanced Search
-- [ ] Compile every song with a specified tag into a BnuuyFolder
-- [ ] Write new tags
-- [ ] Include author in the song title(in playlist picker)
+- [x] Move every song into an existing playlist
+- [x] Copy every song into an existing playlist
+- [x] Delete every song
+- [x] Write new tags
+- [ ] Allow browsing of found songs
 - [ ] Download lyrics from preexisting songs(if metadata tags are available)
-- [ ] Create a cached database of metadata(using modification time of the file as the marker to recheck or not)
 
-### Folders (internal)
+### BnuuyFolders (internal)
 - [x] Internal folder system(Seperate from OS file sys folders for sorting playlists)
 - [x] Create/rename/delete folders
 - [x] Auto created default folder(Liked songs folder, has special behavior allowing for individual songs to be played that the user likes.)

@@ -8,6 +8,7 @@ import threading
 import traceback
 import subprocess
 from datetime import timedelta
+from types import MethodType
 
 try: 
     import requests
@@ -23,16 +24,9 @@ try:
     import mutagen
     mutagen_installed = True
 except (ModuleNotFoundError, ImportError):
-    print("Mutagen not instslled, some features may be disabled.")
+    print("Mutagen not installed, some features may be disabled.")
     print("To install mutagen, run) pip install mutagen")
     mutagen_installed = False
-
-# Checks if MPV is installed
-check = shutil.which("mpv")
-
-if check is None:
-    print("MPV is not installed. Please install the MPV package.")
-    sys.exit()
 
 #### README ####
 
@@ -329,6 +323,11 @@ ___________________________________________________________|
             elif player == ("0", 0): return
             else: break
 
+        if shutil.which("mpv") is None:
+            print("Install MPV to access audio playback!")
+            print("You can install MPV by reading bnuuyplayer's github README.md and folloeing the guide.")
+            return
+
         print("")
 
         try:
@@ -336,7 +335,6 @@ ___________________________________________________________|
             # lrc_thrd.start()
             self.binding_menu()
             subprocess.run(player, check=True)
-            self.term_cleaner()
 
         except(subprocess.CalledProcessError) as e:
             print(f"Error occurred during playback! Error msg: {e}")
@@ -375,9 +373,9 @@ ___________________________________________________________|
 
     def folder_check(self, tupl):
 
-        if tupl[0] in self.valid_sentinels and isinstance(tupl, list): return True
+        if tupl[0] in self.valid_sentinels and not os.path.isdir(tupl[1]): return True
         else: return False
-    
+
     #### DEFAULT FOLDER CREATOR ####
 
     # Creates a default internal folder if they dont exist
@@ -450,6 +448,9 @@ ___________________________________________________________|
             if self.folder_check(tupl): 
                 folder_cache[len(folder_cache)+1] = (key, True)
             else:
+                # filters out streamed entries when local_only is true
+                if tupl[2] and local_only: continue
+
                 display_keys[len(display_keys)+1] = (key, False)
 
         # This ensures that folders are always after flat playlists
@@ -548,6 +549,7 @@ ___________________________________________________________/\\
                 if found is False: 
                     print("A liked song disappeared; was it deleted or moved out?")
                     print(f"Missing song) {os.path.basename(os.path.splitext(path)[0])}")
+                    liked.remove(path)
                     continue
 
             else: songs[len(songs)+1] = path
@@ -635,7 +637,11 @@ ___________________________________________________________|
 
                 if selection == 0: break 
 
+                if self.folder_check(library[display_keys[selection][0]]):
+                    raise ValueError
+
                 _, dest_path, is_stream, _ = library[display_keys[selection][0]]
+
                 if is_stream:
                     self.term_cleaner()
                     print("Invalid input, wrong number entered!")
@@ -658,17 +664,24 @@ ___________________________________________________________|
                     lrc_file = f"{os.path.basename(os.path.splitext(path)[0])}.lrc"
                     lrc_path = os.path.join(os.path.dirname(path), lrc_file)
                     if os.path.isfile(lrc_path):
-                        shutil.move(lrc_path, dest_path)
-                    shutil.move(path, dest_path)
+                        try:
+                            shutil.move(lrc_path, dest_path)
+                        except shutil.Error:
+                            self.term_cleaner()
+                            print("Lyric file already exists in that directory:( skipping..")
+                            continue
+                    try:
+                        shutil.move(path, dest_path)
+                    except shutil.Error:
+                        self.term_cleaner()
+                        print("File already exists in that directory :( Canceling..")
+                        continue
 
                     print("Successfully moved file!")
 
                 elif confirm == 0: break 
 
-                else: 
-                    self.term_cleaner()
-                    print("Invalid input :(")
-                    continue
+                else: raise ValueError
 
             except (ValueError, KeyError):
                 self.term_cleaner()
@@ -690,7 +703,13 @@ ___________________________________________________________|
                         tupl.append(path)
                         self.saver()
                         print("Successfully liked song!")
+                        success = True
                         break
+                    else: success = False
+
+                if success is False:
+                    print("Song not found! :( aborting..")
+                    return
             case "d":
                 """Delete song"""
                 check = os.path.isfile(path)
@@ -790,7 +809,7 @@ ___________________________________________________________|
                             lrc_file = f"{os.path.basename(os.path.splitext(path)[0])}.lrc"
                             lrc_path = os.path.join(os.path.dirname(path), lrc_file)
                             if os.path.isfile(lrc_path):
-                                try: shutil.copy(lrc_file, dest_path)
+                                try: shutil.copy(lrc_path, dest_path)
 
                                 except shutil.SameFileError: pass
 
@@ -809,7 +828,12 @@ ___________________________________________________________|
 
                     except ValueError:
                         self.term_cleaner()
-                        print("Invalid input!")
+                        print("Invalid input :(")
+                        continue
+
+                    except TypeError:
+                        self.term_cleaner()
+                        print("Invalid number.")
                         continue
 
             case "p":
@@ -867,6 +891,9 @@ ___________________________________________________________|
 
                     if search_select == "2": 
                         """Playlist route"""
+                        for key in entries.keys():
+                            if name == key:
+                                name = f"{name} (2)"
                         entries[name.lower()] = path, is_stream, len(entries)+1, key
                         playlist_handler = True
 
@@ -895,8 +922,7 @@ ___________________________________________________________|
                     # The reason why theyre seperate is that songs need to be unpacked
                     # because os.listdir() returns a list of strings
                     if song_handler:
-                        # NOTE, CURRENTLY DOES NOT WORM
-                        # I am unsure what is going wrong:(
+
                         search = set(difflib.get_close_matches(search_query.lower(), songs, n=8, cutoff=0.3))
                     else:
                         search = set(difflib.get_close_matches(search_query.lower(), entries, n=8, cutoff=0.3))
@@ -942,20 +968,306 @@ Playlist key) {key}\n""")
                 print("Invalid input! :(")
                 continue
 
-    # Mutagen advanced search
+    def bulk_helper(self, params, mode, dest_path):
+
+        processed_files = 0
+
+        for num, (metadata, path, key) in params.items():
+            if not os.path.isdir(dest_path):
+                print("Destination path was deleted, please select a new playlist!")
+                break
+
+            # This is a blacklist of files to prevent copy from overwriting same name files
+            if mode == "copy": files = set(os.listdir(dest_path))
+            # moving doesnt need it as it raises an error
+            else: files = {}
+
+            lrc_file = f"{os.path.basename(os.path.splitext(path)[0])}.lrc"
+            lrc_path = os.path.join(os.path.dirname(path), lrc_file)
+
+            moved_song = False
+            if not os.path.isfile(path):
+                print(f"{os.path.basename(path)} is missing or deleted, skipping..")
+                continue
+
+            try:
+                handled = False
+                if mode == "move":
+                    shutil.move(path, dest_path)
+                    handled = True
+                    msg = f"{os.path.basename(path)} was moved to {os.path.basename(dest_path)}"
+
+                elif mode == "copy" and os.path.basename(path) not in files:
+                    shutil.copy(path, dest_path)
+                    handled = True
+                    msg = f"{os.path.basename(path)} was copied to {os.path.dirname(dest_path)}"
+
+
+                elif mode == "delete":
+                    os.remove(path)
+                    handled = True
+                    msg = f"{os.path.basename(path)} was deleted."
+
+                if handled:
+                    print(msg)
+                    processed_files += 1
+                    moved_song = True
+
+            except(shutil.Error, PermissionError, FileNotFoundError, OSError) as e:
+                print("An error occurred while handling the song file!")
+                print(e)
+                print("Skipping song..")
+                continue
+            
+            if os.path.isfile(lrc_path) and moved_song:
+                try:
+                    handled = False
+
+                    if mode == "move":
+                        shutil.move(lrc_path, dest_path)
+                        msg = f"{lrc_file} was moved to {self.song_paths[key][0]}"
+                        handled = True
+
+                    elif mode == "copy" and lrc_file not in files:
+                        shutil.copy(lrc_path, dest_path)
+                        msg = f"{lrc_file} was copied to {os.path.basename(dest_path)}"
+                        handled = True
+
+                    elif mode == "delete":
+                        os.remove(lrc_path)
+                        msg = f"{lrc_file} was deleted."
+                        handled = True
+
+                    if handled:
+                        print(msg)
+                        processed_files += 1
+
+                except(shutil.Error, PermissionError, FileNotFoundError, OSError) as e:
+                    print("An error occurred while handling the lyric file!")
+                    print(e)
+                    print("Skipping lyric file..")
+                    continue
+
+        print("Finished handling the files!:3")
+        return processed_files
+
+
+    #### MULTIPLE FILE MOVER ####
+    # Note: all of these are currently unfinished
+    def bulk_mover(self, params):
+        while True:
+            try:
+                res = self.lib_print(local_only=True)
+                selection = int(input("""
+___________________________________________________________\\/
+Please select a playlist to move the song(s) into.         |
+                                                           |
+0) Return                                                  |
+___________________________________________________________|
+
+>>> """))
+
+                if selection == 0:
+                    self.term_cleaner()
+                    return
+                
+                keys = res.get("display_keys")
+                selected_playlist = self.song_paths[keys[selection][0]]
+
+                # is folder check
+                if keys[selection][1]:
+                    self.term_cleaner()
+                    print("Can not select a folder, please select a playlist.")
+                    continue
+                # Stream check
+                elif selected_playlist[2]: raise ValueError
+
+                dest_path = selected_playlist[1]
+
+                while True:
+                    confirm = input(f"""
+___________________________________________________________
+Are you sure?                                             /\\
+You are moving {len(params)} file(s) (not including lyric files)
+into {selected_playlist[0]}
+                                                          \\/
+1) Confirm                                                 |
+0) Return                                                  |
+___________________________________________________________|
+
+>>> """)
+
+                    if confirm == "0":
+                        self.term_cleaner()
+                        break
+                    elif confirm == "1":
+                        self.term_cleaner()
+                        amount_moved = self.bulk_helper(params, "move", dest_path)
+
+                        print(f"Moved {amount_moved} files!:3")
+                        return
+
+                    else:
+                        self.term_cleaner()
+                        print("Invalid input.")
+                        continue
+
+            except (ValueError, KeyError):
+                self.term_cleaner()
+                print("Invalid input, please select a playlist")
+                continue
+
+
+    #### MULTIPLE FILE COPY ####
+
+    def bulk_copy(self, params):
+        copy_size_bytes = 0 
+        for _, (_, path, _,) in params.items():
+            if os.path.isfile(path):
+                copy_size_bytes += os.path.getsize(path)
+
+        copy_size_kb = copy_size_bytes / 1024
+        copy_size_mb = copy_size_kb / 1024
+        copy_size_gb = copy_size_mb / 1024
+
+        while True:
+            try:
+                res = self.lib_print(local_only=True)
+
+                dest_select = int(input("""
+___________________________________________________________\\/
+Select a playlist to copy the files into.                  |
+(note: This may take up alot of storage!)                  |
+                                                           |
+0) Return                                                  |
+___________________________________________________________|
+
+>>> """))
+
+                if dest_select == 0:
+                    self.term_cleaner()
+                    return
+
+                keys = res.get("display_keys")
+
+                selected_playlist = self.song_paths[keys[dest_select][0]]
+                # folder check
+                # keys hold a is folder value at index 1
+                if keys[dest_select][1]:
+                    self.term_cleaner()
+                    print("Cannot select a folder :(, please select a playlist!")
+                    continue
+
+                # stream check
+                elif selected_playlist[2]: raise ValueError
+
+                confirm_loop = True
+                while confirm_loop:
+                    self.term_cleaner()
+                    confirm = input(f"""
+__________________________________________________________/\\
+Are you sure? you are copying {len(params)} files (excluding lyric files)
+Copy size in megabytes) {int(copy_size_mb)}
+Copy size in gigabytes) {copy_size_gb}
+into the playlist) {self.song_paths[keys[dest_select][0]][0]}
+
+1) Continue                                               \\/
+0) Return                                                  |
+___________________________________________________________|
+
+""")
+
+                    if confirm == "1": pass
+
+                    elif confirm == "0":
+                        confirm_loop = False
+                        break
+
+                    else:
+                        self.term_cleaner()
+                        print("Invalid input, pick 1 or 0.")
+                        continue
+
+                
+                    name, dest_path, _, _, = selected_playlist
+
+                    amount_copied = self.bulk_helper(params, "copy", dest_path)
+
+                    print(f"Copied {amount_copied} files!:3")
+                    return
+
+
+            except (ValueError, KeyError):
+                self.term_cleaner()
+                print("Invalid input, please select a playlist")
+                continue
+
+    def bulk_delete(self, params):
+        while True:
+            try:
+                confirm = int(input(f"""
+___________________________________________________________
+Are you sure? This is permanent.                          /\\
+You are deleting {len(params)} files(excluding lyric files).
+                                                          \\/
+1) Continue                                                |
+0) Return                                                  |
+___________________________________________________________|
+                      
+>>> """))
+
+
+                if confirm == 1:
+                    # spoofing the dest path to make it fit in
+                    amount_deleted = self.bulk_helper(params, "delete", self.bnuy_path)
+                    print(f"Deleted {amount_deleted} files.")
+                    return 
+
+                elif confirm == 0:
+                    return
+
+                else: raise ValueError
+
+            except ValueError:
+                self.term_cleaner()
+                print("Invalid input! select 0 or 1.")
+                continue
+
+    #### Mutagen advanced search ####
 
     def advanced_investibunny(self):
         if self.mutagen_installed is False:
             print("Mutagen is uninstalled. to access this run) pip install mutagen")
             return
+
+        bulk_methods = {
+        "1": self.bulk_mover,
+        "2": self.bulk_copy,
+        "3": self.bulk_delete,
+        }
+
+        # Generally unsupported extensions
         invalid_ext = {".midi", ".mid", ".mod", ".xm", ".s3m", ".wma", ".lrc", ".py"}
+        # Extensions that are unsupported by Mutagen
+        unsupported_ext = {".webm", ".mkv", ".it", ".avi", ".mov", "mpg", ".mpeg", ".ts", ".flv", ".3gp"}
+        # valid search tags
         tags = {
             "artist": "artist",
             "title": "title",
             "album": "album",
             }
+
         while True:
             try:
+                print("""
+___________________________________________________________ 
+▼ Advanced search doesnt support ▼                         |
+                                                           |
+.webm .mkv .mod .xm .s3m .it .mid .midi                    |
+.avi .mov .mpg .mpeg .ts .flv .3gp                         |
+And advanced search doesnt look through streamed entries.  |
+___________________________________________________________|""")
+
                 selection = input("""
 ___________________________________________________________
 Enter a tag and what you'd like to search.                 |
@@ -980,43 +1292,127 @@ ___________________________________________________________|
                 elif len(values) < 2: raise ValueError
 
                 else:
+                    self.term_cleaner()
                     tag = tags.get(values[0])
 
                     if tag is None: raise ValueError
 
                     # reconstructs the string 
+                    # 0 is the tag (as seen above)
                     query = " ".join(values[1:])
-                    metatags = {}
+                    results = {}
+                    # this starts by searching playlists in self.song_paths 
+                    # for their metadata
                     for num, tupl in self.song_paths.items():
                         if self.folder_check(tupl): continue
                         
                         name, path, is_stream, _ = tupl
                         
                         if not is_stream:
+                            # then begins looking through local songs..
+                            if not os.path.isdir(path):
+                                print(f"Encountered an invalid playlist) {name}\nIgnoring...")
+                                continue
                             for file in os.listdir(path):
                                 # filters invalid songs and files
                                 if os.path.splitext(file)[1].lower() in invalid_ext: 
                                     continue
+                                full_file = os.path.join(path, file)
                                 # collects the metadata
-                                metadata = mutagen.File(os.path.join(path, file), easy=True)
+                                try:
+                                    metadata = mutagen.File(full_file, easy=True)
+                                except mutagen.MutagenError as e:
+                                    print("An error occurred! ▼")
+                                    print(e)
+                                    print("Ignoring the file..")
+                                    continue
 
-                                if len(metadata) == 0 or metadata is None:
+                                if os.path.splitext(file)[1] in unsupported_ext:
+                                    print(f"{file} is unsupported.")
+                                    continue
+
+                                elif metadata is None or len(metadata) == 0:
                                     print(f"{file} had no metadata.")
                                     continue
-                                else: metatags[len(metatags)+1] = metadata
+
+                                # pulls the selected tag from the metadara
+                                value = metadata.get(tag)
+
+                                if value is None:
+                                    print(f"{file} did not have {tag} in its metadata :(")
+                                    continue
+
+                                for data in value:
+                                    # fuzzy search through the results
+                                    check = difflib.SequenceMatcher(None, data.lower(), query.lower()).ratio()
+                                    if check < 0.3: 
+                                          print(f"{file} did not match.")
+                                          continue
+                                    # if its a match > 0.3, it saves the result
+                                    else: 
+                                        results[len(results)+1] = (metadata, full_file, num)
+                                        break
+
+                    while True:
+
+                        if len(results) == 0:
+                            print("\nNo results found:(")
+                            break
+
+                        else:
+                            print("""
+___________________________________________________________
+▼ Closest results ▼                                       /\\""")
+                            for num, res in results.items():
+                                """tuple collection"""
+                                data_dict = res[0]
+                                song_path = res[1]
+                                location = res[2]
+                                """metadata collection"""
+                                artist = data_dict.get("artist")
+                                title = data_dict.get("title")
+                                album = data_dict.get("album")
+
+                                print(f"""
+Artist(s): {artist}
+Title: {title}
+Album: {album}
+Playlist name: {self.song_paths[location][0]} 
+Playlist key: {location}""")
 
 
-                    print(metadata)
-                    print("debug stuff")
+                            choice = input(f"""
+__________________________________________________________\\/
+1) Move every result into a playlist (may take some time.)|
+2) Copy every result into a playlist (will take storage)  |
+3) Delete every result. (may take some time)              |
+0) Return                                                 |
+__________________________________________________________|
 
-                    continue
+>>> """)
+
+                            funct = bulk_methods.get(choice)
+                            if choice == "0": break
+
+                            elif funct is None: 
+                                self.term_cleaner()
+                                print("Invalid input, select a number between 0-3")
+                                continue
+
+                            else: 
+                                self.term_cleaner()
+                                funct(results)
+                                break
 
             except ValueError:
-                traceback.print_exc()
-                continue
-                # note: code above is debug code
                 self.term_cleaner()
-                print("Invalid input, please read the README.md's help section on this area.")
+                print("Invalid input.")
+                print("Read BnuuyPlayer's README.md help section.")
+                continue
+
+            except IndexError:
+                self.term_cleaner()
+                print("Invalid input.")
                 continue
 
 
@@ -1069,8 +1465,15 @@ ___________________________________________________________|
 
                 if self.folder_check(tupl):
                     res = self.folder_manager(tupl)
+
                     if res is not None:
                         values = res.get("selected")
+
+                        if values is None: 
+                            liked_handler = True
+                            path = res
+                            is_stream = True
+
                     else: continue
 
                     # regular route
@@ -1078,13 +1481,13 @@ ___________________________________________________________|
                         name, path, is_stream, function = values
 
                 else: name, path, is_stream, function = tupl
-
-                if not os.path.isdir(path) and is_stream is False:
-                    self.term_cleaner()
-                    print("The original folder is missing, did you move it or delete it?")
-                    print("Deleting playlist for stability..")
-                    self.internal_delete(display_keys[choice][0])
-                    continue
+                if not liked_handler:
+                    if not os.path.isdir(path) and is_stream is False:
+                        self.term_cleaner()
+                        print("The original folder is missing, did you move it or delete it?")
+                        print("Deleting playlist for stability..")
+                        self.internal_delete(display_keys[choice][0])
+                        continue
 
                 picker_skip = False
                 # prints every local song in current song path playlist
@@ -1403,9 +1806,7 @@ Enter any key to continue.""")
                     self.time_used = 0
                     return
 
-                if "3" in failed: 
-                    """Shuffl check"""
-                    make_list = True
+                make_list = False
 
                 if "4" in failed: 
                     """Time used check"""
@@ -1416,6 +1817,10 @@ Enter any key to continue.""")
                 for key, method in failed.items():
                     while True:
                         if key == "1" or key == "2" or key == "3":
+                            if key == "3": 
+                                """Shuffl check"""
+                                make_list = True
+
                             choices = {
                                 "1": True, 
                                 "2": False,
@@ -1438,6 +1843,7 @@ Entry) {method}
 
                             if make_list:
                                 selected_bool = [selected_bool, "placeholder"]
+                                make_list = False
 
                             setattr(self, method, selected_bool)
                             solved.append(key)
@@ -1489,11 +1895,22 @@ Corrupted/edited path) {tupl}""")
         self.song_paths = tmp_handler # pushes recovered playlists back into the dict
         # Note: invalid songs are already scrubbed, theyre not included in tmp_handler
 
-        """Reindexes song path keys"""
-        # writes into main song paths after processing
-        res = {i: v for i, v in enumerate(self.song_paths.values(), start=1)}
+        tmp_db = {}
+        # converts json string keys back into integers
+        for key, tupl in self.song_paths.items():
+
+            try:
+                key = int(key)
+            except ValueError:
+                print(f"Invalid key was found, was the json modified?")
+                print(f"Deleting the entry at key {key} for stability.")
+                continue
+
+            tmp_db[key] = tupl
+
         self.song_paths.clear()
-        self.song_paths.update(res)
+        self.song_paths.update(tmp_db)
+
 
     #### PERSISTENT HIST CREATOR ####
 
@@ -1834,7 +2251,7 @@ ___________________________________________________________|""")
         while True:
             is_stream = False
             countr = 0
-            song_path_len = len(self.song_paths)
+            song_path_len = max(self.song_paths, default=0)+1
 
             
             """Folder printer"""
@@ -1994,6 +2411,10 @@ ___________________________________________________________|
                 print("\nTimeout!")
                 return
 
+            except(requests.exceptions.ConnectionError):
+                print("\nInternet connection dropped, unable to download!")
+                return
+
             
             # if lrclib responds successfully, attempt to find lyrics
             if lrc_get.status_code == 200:
@@ -2023,9 +2444,17 @@ ___________________________________________________________|
                 # combines the processed dir with processed basename and .lrc
                 lrc_path = os.path.join(os.path.dirname(d["filename"]), f"{base_name}.lrc")
 
+                try:
+                    with open(lrc_path, "w") as f:
+                        f.write(lyric)
+                except OSError as e:
+                    print(f"\nEncountered a OS Error when writing the .lrc! ▼\n\n{e}")
+                    return
 
-                with open(lrc_path, "w") as f:
-                    f.write(lyric)
+                except PermissionError:
+                    print("BnuuyPlayer has no permission to write files.")
+                    return
+
                 # 404 means no lyrics found as per lrclib responses
 
             elif lrc_get.status_code == 404:
@@ -2103,6 +2532,7 @@ ___________________________________________________________|
 
                 self.term_cleaner()
 
+                url_inp = ":3"
                 while True:
 
                     # if the choice ISNT 0; it runs this
@@ -2188,7 +2618,11 @@ ___________________________________________________________
                         print("Invalid input!")
                         continue
 
-                if choice == 1:
+                if url_inp == "0":
+                    self.term_cleaner()
+                    continue
+
+                elif choice == 1:
                     self.term_cleaner()
                     dl_location = int(input("""
 ___________________________________________________________
@@ -2280,14 +2714,20 @@ ___________________________________________________________|
 ___________________________________________________________
 Would you like a display name for the folder?              |
                                                            |
-0) No, continue.                                           |
+1) No, continue.                                           |
+0) Return                                                  |
 ___________________________________________________________|
 
 >>> """)
                             # if user selects 0, use folder name
                             # else use disp name
                             name = None
-                            if disp_name == "0": name = folder_name
+                            if disp_name == "1": name = folder_name
+
+                            elif disp_name == "0": 
+                                self.term_cleaner()
+                                continue
+
                             else: name = disp_name
 
                             is_stream = False
@@ -2319,7 +2759,6 @@ mp3     (Audio)                                            |
 m4a     (Audio)                                            |
 m4v     (Video)                                            |
 mp4     (Video)                                            |
-webm    (Video)                                            |
 ___________________________________________________________|
 ▼ Unsupported extensions ▼                                 |
                                                            |
@@ -2342,6 +2781,9 @@ Warning: Do not include a dot when entering the file extension.
                                 "progress_hooks": [self.yt_hook],
                                 "ignoreerrors": "only_download",
                                 "no_warnings": True,
+                                "postprocessors": [{
+                                    "key":"FFmpegMetadata", "add_metadata": True,
+                                    }]
                                 }
                         yt_processor = {
                             "postprocessors": [{
@@ -2360,6 +2802,8 @@ Warning: Do not include a dot when entering the file extension.
                         elif ext == "0":
                             if dl_location == 2:
                                 os.rmdir(path)
+                                del self.song_paths[next_key]
+
                             break
 
                         # if its a audio format; use postprocessors, else dont
@@ -2542,6 +2986,27 @@ That will be the 4th playlist, and the folder associated with the number 6.""")
                 playlist = full.get(display_keys[int_keys[0]][0])
                 folder = full.get(display_keys[int_keys[1]][0])
 
+                restart = False
+                checked_keys = set()
+
+                for key in folder:
+                    check_loop = True
+                    while check_loop:
+                        retries = 0
+                        if display_keys[int_keys[0]][0] in checked_keys and retries != 2:
+                            print("Invalid input, this playlist already exists in the folder!")
+                            restart = True
+                            check_loop = False
+                            break
+
+                        else: 
+                            checked_keys.add(key)
+                            retries += 1
+                            continue
+
+
+                if restart: continue
+
                 err = None
                 err_msg = {
                         "playlist_unfound": "No playlist found.",
@@ -2633,9 +3098,17 @@ ___________________________________________________________|
                     break
 
                 match = folder_dict.get(keys[del_choice][0])
+
                 if match is None:
                     self.term_cleaner()
                     print("Invalid input, no matches found.")
+                    continue
+
+                sentinel = match[0]
+
+                if sentinel == "liked_songs":
+                    self.term_cleaner()
+                    print("Can not delete the liked songs folder.")
                     continue
 
                 else: 
@@ -2675,12 +3148,16 @@ ___________________________________________________________|
     def liked_remover(self, folder):
         while True:
             songs = {}
+            no_songs = False
             try:
+                print("___________________________________________________________/\\")
 
                 for path in folder[2:]:
                     songs[len(songs)+1] = path
                     print(f"{len(songs)}) {os.path.basename(os.path.splitext(path)[0])}")
-                if len(songs) == 0: print("No liked songs found.")
+                if len(songs) == 0: 
+                    print("No liked songs found.")
+                    no_songs = True
                 choice = int(input("""
 ___________________________________________________________\\/
 Select the song you want to unlike.                        |
@@ -2690,9 +3167,11 @@ ___________________________________________________________|
 
 >>> """))
 
+                self.term_cleaner()
+
                 if choice == 0: break 
                 else:
-                    if choice not in range(1, len(songs)+1):
+                    if choice not in range(1, len(songs)+1) or no_songs:
                         print("Invalid input, no song at that number was found.")
                         continue
 
@@ -2864,8 +3343,15 @@ ___________________________________________________________|
                 else:
                     self.term_cleaner()
 
+                    playlist = self.song_paths[keys[del_choice][0]]
+
+                    if self.folder_check(playlist):
+                        self.term_cleaner()
+                        print("Can not delete folders here, please select a playlist!")
+                        continue
+
                     confirm = int(input(f"""Are you sure?
-You are deleting {keys[del_choice][0][0]}
+You are deleting {playlist[0]}
 
 1) Confirm
 0) Return
@@ -2888,25 +3374,19 @@ You are deleting {keys[del_choice][0][0]}
     #### DELETE PLAYLIST FROM DISK ####
 
     def del_playlist_from_disk(self):
-        confirm = int(input("""Are you sure? this is permanent.
-1) Yes
-0) Return
-
->>> """))
         while True:
             try:
 
-                if confirm == 1:
-                    self.term_cleaner()
+                self.term_cleaner()
 
-                    results = self.lib_print(local_only=True)
-                    # assigns values
-                    local_paths = results.get("local_dict")
-                    countr = results.get("local_countr")
-                    keys = results.get("display_keys")
-                    # lib print sets local back to False as a side effect
+                results = self.lib_print(local_only=True)
+                # assigns values
+                local_paths = results.get("local_dict")
+                countr = results.get("local_countr")
+                keys = results.get("display_keys")
+                # lib print sets local back to False as a side effect
 
-                    del_choice = int(input("""___________________________________________________________\\/
+                del_choice = int(input("""___________________________________________________________\\/
 Which playlist would you like to delete?                   |
 ___________________________________________________________|
 ▼ Extra commands ▼                                         |
@@ -2916,48 +3396,43 @@ ___________________________________________________________|
 
 >>> """))
 
-                    if del_choice == 0: return
+                if del_choice == 0: return
 
-                    """Delete processer"""
-                    # find the path, remember name for later
-                    delname, path, _, _ = local_paths[keys[del_choice][0]]
-                    while True:
-                        final_confirm = input(f"""
+                """Delete processer"""
+                # find the path, remember name for later
+                delname, path, _, _ = local_paths[keys[del_choice][0]]
+                while True:
+                    final_confirm = input(f"""
 ___________________________________________________________/\\
 Are you sure? you are deleting) {delname}
-                                                           \\/
+This is permanent.                                         \\/
+                                                           | 
 1) Delete                                                  |
 0) Return                                                  |
 ___________________________________________________________| 
 
 >>> """)
 
-                        if final_confirm == "0": 
-                            self.term_cleaner()
-                            print("Canceled.")
-                            break
+                    if final_confirm == "0": 
+                        self.term_cleaner()
+                        print("Canceled.")
+                        break
 
-                        elif final_confirm == "1":
+                    elif final_confirm == "1":
 
-                            """Recursive delete"""
-                            shutil.rmtree(path)
+                        """Recursive delete"""
+                        shutil.rmtree(path)
 
-                            """Library updater"""
-                            # Reindexes and deletes selected playlist
-                            self.internal_delete(keys[del_choice][0])
-                            print("Successfully deleted!")
-                            break
+                        """Library updater"""
+                        # Reindexes and deletes selected playlist
+                        self.internal_delete(keys[del_choice][0])
+                        print("Successfully deleted!")
+                        break
 
-                        else:
-                            self.term_cleaner()
-                            print("Invalid input!")
-                            continue
-                elif confirm == 0: return
-                else: 
-                    self.term_cleaner()
-                    print("Invalid input.")
-
-
+                    else:
+                        self.term_cleaner()
+                        print("Invalid input!")
+                        continue
 
             except ValueError:
                 self.term_cleaner()
@@ -2972,22 +3447,19 @@ ___________________________________________________________|
     #### ADD PLAYLIST ####
     
     def add_playlist(self):
-        try:
-            choice = self.adder_menu()
+        while True:
+            try:
+                choice = self.adder_menu()
 
-            if choice == 0: return # Return to last menu
-            while True:
-                try:
-                    funct = self.adders[choice]
-                    break
-                except (ValueError, KeyError):
-                    self.term_cleaner()
-                    print("Invalid input!")
-                    continue
-            funct()
-        except KeyError:
-            self.term_cleaner()
-            print("Invalid input!")
+                if choice == 0: return # Return to last menu
+
+                funct = self.adders[choice]()
+                break
+
+            except (ValueError, KeyError):
+                self.term_cleaner()
+                print("Invalid input!")
+                continue
 
     #### EDIT PLAYLIST NAME ####
 
@@ -3033,6 +3505,12 @@ ___________________________________________________________|
 
                     if new_name == "0": continue 
 
+                    if new_name == "liked_songs":
+                        self.term_cleaner()
+                        print(f"Failure) {new_name} is a reserved name for BnuuyPlayer :(")
+                        print("You can name the playlit a variation of it instead :3")
+                        continue
+
                     playlist = list(playlist)
                     playlist[0] = new_name
                     self.song_paths[selected_key] = tuple(playlist)
@@ -3060,15 +3538,219 @@ ___________________________________________________________|
 
         del self.song_paths[num]
 
-        # reenumerates song_paths keys
-        res = {i: v for i, v in enumerate(self.song_paths.values(), start=1)}
-
-        # empty song paths and refills with updated dict
-        self.song_paths.clear()
-        self.song_paths.update(res)
-
         self.saver()
 
+
+    #### METADATA PRINT AND COLLECTION ####
+    def metadata_helper(self, path):
+        count = 0
+        metadata = {}
+
+        invalid_ext = {".midi", ".mid", ".mod", ".xm", ".s3m", ".wma", ".lrc", ".py"}
+        unsupported_ext = {".webm", ".mkv", ".it", ".avi", ".mov", "mpg", ".mpeg", ".ts", ".flv", ".3gp"}
+
+        for file in os.listdir(path):
+            abs_path = os.path.join(path, file)
+
+            key = max(metadata, default=0)+1
+            unsupported_key = max(metadata, default=0)+1
+
+            if os.path.splitext(os.path.basename(file))[1] in invalid_ext:
+                continue
+            elif os.path.splitext(os.path.basename(file))[1] in unsupported_ext:
+                continue
+
+            metadata[key] = mutagen.File(abs_path, easy=True)
+            print(f"{key}) {os.path.basename(file)}")
+
+        print("\nNote: if a song is missing, the file format is likely unsupported.")
+
+        return metadata
+
+
+    #### WRITE SONG METADATA ####
+
+    def metadata_handler(self, playlist, mode):
+        self.term_cleaner()
+        tags = {
+                "artist": "artist",
+                "album": "album",
+                "date": "date",
+                "title": "title",
+                "genre": "genre",
+                }
+        if mode == "add":
+            enter_msg = "Enter the song you'd like to (re)write and the tag."
+            data_choice = "Please enter the new data."
+
+
+        else:
+            enter_msg = "Enter the song and the tag you'd like to delete."
+            data_choice = "Are you sure? enter anything to confirm."
+
+        while True:
+            try:
+                print(f"""___________________________________________________________/\\
+▼ Songs in {playlist[0]} ▼
+""")
+                metadata = self.metadata_helper(playlist[1])
+                if len(metadata) == 0:
+                    self.term_cleaner()
+                    print("No songs in this playlist! :(")
+
+                print("""___________________________________________________________\\/
+▼ Valid tags ▼                                             /\\
+""")
+                for tag in tags.keys(): print(tag)
+
+
+                write_select = input(f"""___________________________________________________________\\/
+{enter_msg}
+e.g) 3 album                                               _
+                                                           |
+0) Return                                                  |
+___________________________________________________________|
+
+>>> """)
+
+                values = write_select.split()
+
+                if write_select == "0": 
+                    self.term_cleaner()
+                    return
+
+                elif len(values) != 2: raise ValueError
+
+                elif int(values[0]) not in range(1, len(metadata)+1):
+                    self.term_cleaner()
+                    print(f"Invalid input, select a song from 1-{len(metadata)}")
+                    continue
+
+                else: 
+                    num, tag = values
+
+                selected_tag = tags.get(tag)
+
+                if selected_tag is None:
+                    self.term_cleaner()
+                    print("Invalid tag, please enter a valid one.")
+                    continue
+
+
+                self.term_cleaner()
+                data = metadata.get(int(num))
+
+                true = True
+                retry = False
+                try: 
+                    curr_tag = data[f"{tag}"]
+                except KeyError:
+                    # KeyError occurs when no metadata exists
+                    curr_tag = "No data available :("
+
+
+                while true:
+
+                    new_data = input(f"""
+__________________________________________________________/\\
+{data_choice}
+Selected tag) {tag}
+Current tag data) {curr_tag}
+                                                          \\/
+0) Return                                                  |
+___________________________________________________________|
+
+>>> """)
+
+                    if new_data == "0": 
+                        true = False
+                        retry = True
+                        break
+                    else: break
+
+                self.term_cleaner()
+                if retry: continue 
+
+                if curr_tag != "No data available :(": old_data = data[f"{tag}"]
+
+                else: old_data = "No data :("
+
+                if mode == "add":
+                    data[f"{tag}"] = new_data
+                else:
+                    try:
+                        data.pop(f"{tag}")
+                    except KeyError:
+                        self.term_cleaner()
+                        print("This key doesnt exist!")
+                        continue
+                data.save()
+                if mode == "add":
+                    print(f"Successfully changed {old_data} to {new_data}!")
+                else:
+                    print(f"Successfully deleted {old_data}!")
+
+
+            except ValueError:
+                self.term_cleaner()
+                print("Invalid input!")
+                continue
+
+    #### METADATA SUBSETTINGS ####
+
+    def metadata_settings(self):
+        self.term_cleaner()
+        metadata_methods = {
+                "add": self.metadata_handler,
+                "del": self.metadata_handler,
+                }
+
+        while True:
+            try:
+                res = self.lib_print(local_only=True)
+                keys = res.get("display_keys")
+
+                selection = input("""
+__________________________________________________________\\/
+▼ Metadata settings ▼                                      |
+                                                           |
+add) Add new metadata.                                     |
+del) Delete metadata.                                      |
+___________________________________________________________|
+▼ Extra commands ▼                                         |
+                                                           |
+0) Return                                                  |
+___________________________________________________________|
+Input: <playlist num> <setting>
+
+>>> """)
+
+                selected_stuff = selection.split()
+
+                if selection == "0":
+                    self.term_cleaner()
+                    return
+
+                if len(selected_stuff) != 2:
+                    print("Please select the playlist, then what setting you'd like in the same message.")
+                    print("Seperated by a space.")
+                    continue
+                
+                num = int(selected_stuff[0])
+                cmd = selected_stuff[1]
+
+                playlist = self.song_paths[keys[num][0]]
+                if self.folder_check(playlist):
+                    self.term_cleaner()
+                    print("Please select a playlist and not a folder!")
+                    continue
+                metadata_methods[cmd](playlist, cmd)
+
+
+            except (KeyError, ValueError):
+                self.term_cleaner()
+                print("Invalid input! select a playlist then the command.")
+                continue
 
     #### PLAYLIST SETTINGS #### 
     def playlist_settings(self):
@@ -3094,7 +3776,7 @@ ___________________________________________________________
 (Note: These are not File system folders)                  |
                                                            |
 1) Create a folder                                         |
-2) Move playlist into a folder                             |
+2) Copy playlist into a folder                             |
 3) Delete a folder                                         |
 4) Remove a playlist from a folder                         |
 5) Edit a folder name                                      |
@@ -3136,12 +3818,13 @@ ___________________________________________________________|
         while True:
             try:
 
-                choice = int(input("""
+                choice = int(input(f"""
 ___________________________________________________________
 ▼ Commands ▼                                               |
                                                            |
-1) Toggle shuffle. (This is saved between sessions!)       |
+1) Toggle shuffle. (Currently: {self.shuffl[1]}                |
 2) BnuuyFolder/Playlist sub settings                       |
+3) Song Metadata settings                                  |
 0) Return.                                                 |
 ___________________________________________________________|
 
@@ -3158,17 +3841,19 @@ ___________________________________________________________|
                     self.shuffl[0] = not self.shuffl[0]
 
                     if self.shuffl[0]:
-                        self.shuffl[1] = "activated"
+                        self.shuffl[1] = "activated)  "
                     else:
-                        self.shuffl[1] = "deactivated"
+                        self.shuffl[1] = "deactivated)"
 
                     self.term_cleaner()
-                    print(f"Shuffle has been {self.shuffl[1]} \n")
-                    continue
 
                 elif choice == 2:
                     """Playlist sub settings"""
                     self.playlist_settings()
+
+                elif choice == 3:
+                    """Metadata settings"""
+                    self.metadata_settings()
 
 
                 else:
@@ -3240,8 +3925,6 @@ To use BnuuyPlayer, there must first be a valid song folder/playlist.""")
     def main_menu(self):
 
         self.saver()
-        self.term_cleaner()
-
         print("""
               ⠀⠀⣠⡶⢶⣦⠀⠀⠀⣠⡶⢶⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
               ⠀⢰⡟⠀⠀⢹⣧⠀⣸⠏⠀⠀⢻⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
