@@ -44,3 +44,11 @@ Note: The return's behaviour is currently too destructive, will be reworked soon
 - [x] Added playback capability in advanced search
 - [x] Several bugfixes
 
+## V0.4 BETA
+### FEATURES
+- [x] Added a toggle that allows the user to allocate a custom amount of RAM to MPV
+- [x] Added a toggle that allows BnuuyPlayer to play video (PC only)
+- [x] Added gapless audio toggle
+- [x] Added time playing statistic
+- [x] Made the border of the first time welcome text smaller.
+

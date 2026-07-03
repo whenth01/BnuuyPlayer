@@ -92,7 +92,11 @@ class BnuuyPlayer:
         self.no_hint = False
         self.initialized = False
         self.shuffl = [False, "placeholder"]
+        self.ram_allocated = 10
+        self.video = False
         self.time_used = 0
+        self.time_playing = 0
+        self.gapless_toggle = False
 
         # Bulk save handles saving, song paths is used in playlist picker
         self.song_paths = {}
@@ -143,6 +147,27 @@ l cycle-values loop-file inf no"""
                 4: self.yt_adder,
                 }
 
+        # Used to filter correct and false domains
+        self.valid_domains = {"youtube.com",
+                "youtu.be",
+                "music.youtube.com",
+                "soundcloud.com",
+                "bandcamp.com",
+                "dai.ly",
+                "vimeo.com",
+                "tiktok.com",
+                "vm.tiktok.com",
+                "dailymotion.com",
+                "old.reddit.com",
+                "v.redd.it",
+                "reddit.com",
+                "instagr.am",
+                "instagram.com",
+                "fb.watch",
+                "facebook.com",
+                "fb.com",
+                "audiomack.com",
+                "mixcloud.com"}
 
         self.main_operations = {
                "1": ("Playlists", "Your library, your songs/playlists are here.", self.audio_funct),
@@ -175,6 +200,11 @@ l cycle-values loop-file inf no"""
     def time_counter(self):
         while True:
             self.time_used += 1
+            time.sleep(1)
+
+    def time_playing_counter(self):
+        while True:
+            self.time_playing += 1 
             time.sleep(1)
 
 
@@ -275,6 +305,19 @@ ___________________________________________________________|
         self.term_cleaner()
         return choice
 
+    #### TIMER PRINTER ####
+
+    def time_print(self, mode):
+        if mode == "using":
+            time_elapsed = str(timedelta(seconds=self.time_used))
+        else:
+            time_elapsed = str(timedelta(seconds=self.time_playing))
+
+        self.term_cleaner()
+
+        print(f"You have been {mode} BnuuyPlayer for) {time_elapsed}")
+        return
+
     ############# XTRA METHODS #############
 
     def stats_display(self):
@@ -285,6 +328,7 @@ ___________________________________________________________
 ▼ Statistics & EasterEggs ▼                                |
                                                            |
 1) Amount of time you have been using Bnuuyplayer for      |
+2) Amount of time you have been playing music for.         |
 0) Return                                                  |
 ___________________________________________________________|
 
@@ -292,10 +336,9 @@ ___________________________________________________________|
                 match choice:
                     case 0: break
 
-                    case 1:
-                        time_elapsed = str(timedelta(seconds=self.time_used))
-                        self.term_cleaner()
-                        print(f"You have been using BnuuyPlayer for) {time_elapsed}")
+                    case 1: self.time_print("using")
+
+                    case 2: self.time_print("playing music on")
 
                     case _: raise ValueError
 
@@ -329,6 +372,9 @@ ___________________________________________________________|
 
         print("")
 
+        playing_countr = threading.Thread(target=self.time_playing_counter, daemon=True)
+        playing_countr.start()
+
         try:
             # lrc_thrd = threading.Thread(target=lrc_funct, daemon=True)
             # lrc_thrd.start()
@@ -337,6 +383,8 @@ ___________________________________________________________|
 
         except(subprocess.CalledProcessError) as e:
             print(f"Error occurred during playback! Error msg: {e}")
+
+        self.saver()
 
 
     # Deprecated until further notice
@@ -549,6 +597,7 @@ ___________________________________________________________/\\
                     print("A liked song disappeared; was it deleted or moved out?")
                     print(f"Missing song) {os.path.basename(os.path.splitext(path)[0])}")
                     liked.remove(path)
+                    curr_index -= 1
                     continue
 
             else: songs[len(songs)+1] = path
@@ -893,7 +942,7 @@ ___________________________________________________________|
                     if search_select == "2": 
                         """Playlist route"""
                         for num in entries.keys():
-                            if name == num:
+                            if name.lower() == num:
                                 name = f"{name} (2)"
                         entries[name.lower()] = path, is_stream, len(entries)+1, key
                         playlist_handler = True
@@ -1277,7 +1326,7 @@ ___________________________________________________________|
         # Generally unsupported extensions
         invalid_ext = {".midi", ".mid", ".mod", ".xm", ".s3m", ".wma", ".lrc", ".py"}
         # Extensions that are unsupported by Mutagen
-        unsupported_ext = {".webm", ".mkv", ".it", ".avi", ".mov", "mpg", ".mpeg", ".ts", ".flv", ".3gp"}
+        unsupported_ext = {".webm", ".mkv", ".it", ".avi", ".mov", ".mpg", ".mpeg", ".ts", ".flv", ".3gp"}
         # valid search tags
         tags = {
             "artist": "artist",
@@ -1645,8 +1694,8 @@ ___________________________________________________________|
 
                     if len(tmp_song) < 1:
                         self.term_cleaner()
-                        print("Playlist is empty.\n")
-                        continue
+                        print("Playlist is empty.")
+
                     if not picker_skip:
                         choice = input("""
 ___________________________________________________________
@@ -1719,15 +1768,20 @@ ___________________________________________________________|
                     *path,
                     f"--input-conf={self.keybind_dir}",
                     "--profile=fast",
-                    "--no-video"
+                    "--no-video",
+                    "--cache",
+                    f"--demuxer-max-bytes={self.ram_allocated}m",
                     ]
 
+
+                if self.video: player.remove("--no-video")
 
                 # f"--input-ipc-server={self.bnuy_path}/.mpv_socket"
                 # saving this here for when i have a laptop/pc.
 
-                if self.shuffl[0]:
-                    player.append("--shuffle")
+                if self.shuffl[0]: player.append("--shuffle")
+
+                if self.gapless_toggle: player.append("--gapless-audio=yes")
 
                 self.term_cleaner()
 
@@ -1899,6 +1953,10 @@ Enter any key to continue.""")
         "2": "no_hint",
         "3": "shuffl",
         "4": "time_used",
+        "5": "time_playing",
+        "6": "video",
+        "7": "ram_allocated",
+        "8": "gapless_toggle",
         }
 
         failed_keys = {}
@@ -1931,19 +1989,31 @@ Enter any key to continue.""")
                     self.no_hint = False
                     self.shuffl = [False, "placeholder"]
                     self.time_used = 0
+                    self.time_playing = 0
+                    self.ram_allocated = 10
                     return
 
                 make_list = False
 
                 if "4" in failed: 
                     """Time used check"""
-                    print("Your time stat was corrupted/unrecoverable, setting to 0.")
+                    print("Your time used stat was corrupted/unrecoverable, setting to 0.")
                     self.time_used = 0
+
+                if "5" in failed:
+                    """Time playing check"""
+                    print("Your time playing stat was corrupted/unrecoverable, setting to 0.")
+                    self.time_playing = 0
+
+                if "7" in failed:
+                    """Allocated RAM"""
+                    print("Allocated RAM config was lost, defaulting to 10mB")
+                    self.ram_allocated = 10
 
                 solved = []
                 for key, method in failed.items():
                     while True:
-                        if key == "1" or key == "2" or key == "3":
+                        if key == "1" or key == "2" or key == "3" or key == "6":
                             if key == "3": 
                                 """Shuffl check"""
                                 make_list = True
@@ -1957,7 +2027,9 @@ Enter any key to continue.""")
 Entry) {method}
 
 1) Set it to the True/on position.
-2) Set it to the False/off position.""")
+2) Set it to the False/off position.
+
+>>> """)
 
                             self.term_cleaner()
 
@@ -2087,6 +2159,10 @@ Corrupted/edited path) {tupl}""")
         self.bulk_save[2] = self.no_hint
         self.bulk_save[3] = self.shuffl
         self.bulk_save[4] = self.time_used
+        self.bulk_save[5] = self.time_playing
+        self.bulk_save[6] = self.video
+        self.bulk_save[7] = self.ram_allocated
+        self.bulk_save[8] = self.gapless_toggle
 
         successful_saves = 0
         """Atomic write to disk"""
@@ -2594,28 +2670,6 @@ ___________________________________________________________|
 
 
     def yt_adder(self):
-        # Used to filter correct and false domains
-        valid_domains = {"youtube.com",
-                         "youtu.be",
-                         "music.youtube.com",
-                         "soundcloud.com",
-                         "bandcamp.com",
-                         "dai.ly",
-                         "vimeo.com",
-                         "tiktok.com",
-                         "vm.tiktok.com",
-                         "dailymotion.com",
-                         "old.reddit.com",
-                         "v.redd.it",
-                         "reddit.com",
-                         "instagr.am",
-                         "instagram.com",
-                         "fb.watch",
-                         "facebook.com",
-                         "fb.com",
-                         "audiomack.com",
-                         "mixcloud.com"}
-
         # Used to filter correct and false video extensions
         vid_ext = {"mp4",
                    "webm",
@@ -2681,7 +2735,7 @@ ___________________________________________________________|
                             if url_inp == "0":
                                 break
                             # filters through to find matching domain 
-                            tmp_url = [url for url in valid_domains if url in url_inp]
+                            tmp_url = [url for url in self.valid_domains if url in url_inp]
 
 
                             # if no matches found, raise badurl
@@ -2699,7 +2753,7 @@ ___________________________________________________________|
                             print("""Unsupported domain!\n 
 ___________________________________________________________ 
 ▼ Bnuuyplayer supports ▼                                  /\\""")
-                            for domain in valid_domains:
+                            for domain in self.valid_domains:
                                 print(domain)
 
                             print("__________________________________________________________\\/")
@@ -3259,6 +3313,116 @@ ___________________________________________________________|
                 print("Invalid input.")
                 continue
 
+    def site_printer(self):
+        site_amount = 0
+        domains = {}
+        print("""
+___________________________________________________________
+▼ Current sites ▼                                          /\\""")
+
+        for site in self.valid_domains:
+            site_amount += 1
+            print(f"{site_amount}) {site}")
+            domains[site_amount] = site
+
+        if len(self.valid_domains) < 1:
+            print("No sites whitelisted!:(")
+
+        return site_amount, domains
+
+    #### SITE WHITELIST HANDLER ####
+
+    def site_whitelist_handler(self):
+        self.term_cleaner()
+        while True:
+            try:
+
+                site_amount, domains = self.site_printer()
+
+                select = int(input("""
+___________________________________________________________\\/
+▼ Select what to do. ▼                                     \\
+NOTE: Adding a site requires the site's name, like shown above.
+                                                           /
+1) Add a new site to the whitelist                         |
+2) Delete a site from the whitelist                        |
+0) Return                                                  |
+___________________________________________________________|
+
+>>> """))
+
+
+                if select == 0: return
+                
+                elif select == 1:
+                    self.term_cleaner()
+                    add_site = input("""
+___________________________________________________________
+Enter the new site name.                                   |
+                                                           |
+0) Return                                                  |
+___________________________________________________________|
+
+>>> """)
+
+                    self.valid_domains.add(add_site)
+                    self.term_cleaner()
+                    print("Successfully added site!:3")
+                    continue
+
+                elif select == 2:
+                    self.term_cleaner()
+                    self.site_printer()
+                    del_site = input("""
+___________________________________________________________
+Please select the site you'd like to remove.               |
+                                                           |
+0) Return                                                  |
+___________________________________________________________|
+
+>>> """)
+
+                    confirm_loop = True
+
+                    if not isinstance(del_site, int) and del_site not in range(1,len(valid_domains)+1):
+                        self.term_cleaner()
+                        print(f"Invalid input, select 0-{len(valid_domains)}")
+                        continue
+
+                    while confirm_loop:
+
+                        confirm = input(f"""
+Are you sure? you are removing {domains[del_site]}
+
+1) Continue
+0) Return
+
+>>> """)
+
+                        if confirm == 1:
+                            break
+
+                        elif confirm == 0:
+                            confirm_loop = False
+                            break
+
+                        else:
+                            self.term_cleaner()
+                            print("Invalid input, select 0 or 1.")
+                            continue
+
+                    if confirm_loop is False:
+                        continue
+
+
+                    self.valid_domains.remove(domains[del_site])
+                    print("Successfully deleted site from whitelist!")
+
+
+            except Exception:
+                traceback.print_exc()
+                input()
+
     #### LIKED SONG REMOVE ####.
 
     def liked_remover(self, folder):
@@ -3663,7 +3827,7 @@ ___________________________________________________________|
         metadata = {}
 
         invalid_ext = {".midi", ".mid", ".mod", ".xm", ".s3m", ".wma", ".lrc", ".py"}
-        unsupported_ext = {".webm", ".mkv", ".it", ".avi", ".mov", "mpg", ".mpeg", ".ts", ".flv", ".3gp"}
+        unsupported_ext = {".webm", ".mkv", ".it", ".avi", ".mov", ".mpg", ".mpeg", ".ts", ".flv", ".3gp"}
 
         for file in os.listdir(path):
             abs_path = os.path.join(path, file)
@@ -3930,16 +4094,33 @@ ___________________________________________________________|
 
     #### SETTINGS / NON-MUSIC ####
     def settings(self):
+
         while True:
             try:
 
+                if self.video: state = "Activated"
+                else: state = "Deactivated"
+
+                if self.gapless_toggle: gap_state = "Activated"
+                else: gap_state = "Deactivated"
+
                 choice = int(input(f"""
 ___________________________________________________________
-▼ Commands ▼                                               |
+▼ Settings ▼                                               |
                                                            |
-1) Toggle shuffle. (Currently: {self.shuffl[1]}                |
-2) BnuuyFolder/Playlist sub settings                       |
-3) Song Metadata settings                                  |
+___________________________________________________________|
+▼ Configs and Personalization ▼                            |
+                                                           |
+1) Toggle shuffle. (Currently: {self.shuffl[1]}                /\\
+2) Set maximum RAM usage when playing audio. (Currently: {self.ram_allocated}mB)
+3) Enable/Disable gapless audio (Currently: {gap_state})
+4) Enable/Disable video rendering (PC only, Currently: {state})
+5) Website whitelist                                      \\/
+___________________________________________________________|
+▼ BnuuyPlayer main settings ▼                              |
+                                                           |
+6) BnuuyFolder/Playlist sub settings                       |
+7) Song Metadata settings                                  |
 0) Return.                                                 |
 ___________________________________________________________|
 
@@ -3963,10 +4144,43 @@ ___________________________________________________________|
                     self.term_cleaner()
 
                 elif choice == 2:
+                    """maximum RAM allocation"""
+                    allocation_loop = True
+                    while allocation_loop:
+                        self.term_cleaner()
+                        ram = input(f"""
+___________________________________________________________
+Please enter any whole number above 1.                     /\\
+Current max) {self.ram_allocated} mB
+0) Return                                                  \\/
+___________________________________________________________|
+
+>>> """)
+
+                        if ram == "0": break
+                        else: ram = int(ram)
+
+                        self.ram_allocated = ram
+                        self.term_cleaner()
+                        print(f"Successfully allocated {ram}mB!")
+                        break
+
+                elif choice == 3:
+                    """Gapless audio toggle"""
+                    self.gapless_toggle = not self.gapless_toggle
+
+                elif choice == 4:
+                    """Video toggle"""
+                    self.video = not self.video
+
+                elif choice == 5:
+                    self.site_whitelist_handler()
+
+                elif choice == 6:
                     """Playlist sub settings"""
                     self.playlist_settings()
 
-                elif choice == 3:
+                elif choice == 7:
                     """Metadata settings"""
                     self.metadata_settings()
 
@@ -3975,7 +4189,7 @@ ___________________________________________________________|
                     raise KeyError
             except (ValueError, KeyError):
                 self.term_cleaner()
-                print("Invalid input.\n")
+                print("Invalid input.")
 
 
     #### INITIAL SETUP ####
@@ -4005,9 +4219,9 @@ ___________________________________________________________|
 ⣰⠾⠿⣄⠈⠉⠗⠿⠟⠃⠀⠀⠀⠀⠀⠒⣒⡿⠋⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣾⣿⡇⠀⠀⠀⠀⠀
 ⣿⠀⠀⠉⠷⣤⣤⣀⠀⠀⠀⠀⠀⠀⣠⣤⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⠀⠀⠀⠀⠀⠀⣄⣀⣾⣿⠉⠁⠀⠀⠀⠀⠀
 ⠿⠷⠶⠶⠶⠿⠶⠿⠿⠶⠶⠶⠾⠾⠿⠿⠿⠷⠾⠶⠷⠶⠾⠾⠾⠷⠷⠶⠾⠷⠾⠷⠶⠶⠾⠷⠾⠿⠿⠿⠋⠀⠀⠀⠀⠀⠀⠀
- ________________________________________________________________________
-|Welcome to BnuuyPlayer!                                                 |
-|________________________________________________________________________|
+___________________________________________________
+|Welcome to BnuuyPlayer!                           |
+|__________________________________________________|
 
 To use BnuuyPlayer, there must first be a valid song folder/playlist.""")
                     choice = self.adder_menu()

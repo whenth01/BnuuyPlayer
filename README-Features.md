@@ -64,11 +64,11 @@
 ### Settings & Stats
 ***This is currently being developed!***
 - [x] Persistent shuffle
-- [ ] Timed used, time playing stats
+- [x] Timed used, time playing stats
 - [x] Toggleable main menu hint
-- [ ] Maximum ram usage by MPV(minimum of 1)
+- [x] Maximum ram usage by MPV(minimum of 1)
 - [x] First run setup guide
-- [ ] Toggleable --no-video toggle
+- [x] Toggleable --no-video toggle
 - [ ] Site whitelist menu
 
 ### EasterEggs
