@@ -8,7 +8,6 @@ import threading
 import traceback
 import subprocess
 from datetime import timedelta
-from types import MethodType
 
 try: 
     import requests
@@ -384,7 +383,7 @@ ___________________________________________________________|
         next_key = max(self.song_paths, default=0)+1
 
         for num, tupl in self.song_paths.items():
-            if tupl[0] == "liked_songs":
+            if self.folder_check(tupl) and tupl[0] == "liked_songs":
                 liked_exists = True
 
         if liked_exists is not True:
@@ -698,6 +697,7 @@ ___________________________________________________________|
 
             case "l":
                 """Like a song"""
+                success = False
                 for _, tupl in self.song_paths.items():
                     if self.folder_check(tupl) and tupl[0] == "liked_songs":
                         tupl.append(path)
@@ -705,6 +705,7 @@ ___________________________________________________________|
                         print("Successfully liked song!")
                         success = True
                         break
+
                     else: success = False
 
                 if success is False:
@@ -842,7 +843,7 @@ ___________________________________________________________|
 
             case _:
                 self.term_cleaner()
-                print("Invalid input.")
+                print("Invalid input! D:")
                 return
 
     #### SEARCH LIBRARY ####
@@ -891,8 +892,8 @@ ___________________________________________________________|
 
                     if search_select == "2": 
                         """Playlist route"""
-                        for key in entries.keys():
-                            if name == key:
+                        for num in entries.keys():
+                            if name == num:
                                 name = f"{name} (2)"
                         entries[name.lower()] = path, is_stream, len(entries)+1, key
                         playlist_handler = True
@@ -961,12 +962,14 @@ Located at
 Playlist name) {playlist_name}
 Playlist key) {key}\n""")
 
-                    print("""__________________________________________________________\\/""")
+                    print("__________________________________________________________\\/")
 
             except ValueError:
                 self.term_cleaner()
                 print("Invalid input! :(")
                 continue
+
+    #### METADATA COMPILER & BACKEND ####
 
     def bulk_helper(self, params, mode, dest_path):
 
@@ -1000,13 +1003,29 @@ Playlist key) {key}\n""")
                 elif mode == "copy" and os.path.basename(path) not in files:
                     shutil.copy(path, dest_path)
                     handled = True
-                    msg = f"{os.path.basename(path)} was copied to {os.path.dirname(dest_path)}"
+                    msg = f"{os.path.basename(path)} was copied to {os.path.basename(dest_path)}"
 
 
                 elif mode == "delete":
                     os.remove(path)
                     handled = True
                     msg = f"{os.path.basename(path)} was deleted."
+
+                
+                elif mode == "play":
+                    player = [
+                        "mpv",
+                        path,
+                        f"--input-conf={self.keybind_dir}",
+                        "--profile=fast",
+                        "--no-video"
+                        ]
+                    try:
+                        subprocess.run(player, check=True)
+                        continue
+                    except subprocess.CalledProcessError as e:
+                        print(f"An error occurred!")
+                        print(e)
 
                 if handled:
                     print(msg)
@@ -1025,7 +1044,7 @@ Playlist key) {key}\n""")
 
                     if mode == "move":
                         shutil.move(lrc_path, dest_path)
-                        msg = f"{lrc_file} was moved to {self.song_paths[key][0]}"
+                        msg = f"{lrc_file} was moved to {os.path.basename(dest_path)}"
                         handled = True
 
                     elif mode == "copy" and lrc_file not in files:
@@ -1168,18 +1187,19 @@ ___________________________________________________________|
 __________________________________________________________/\\
 Are you sure? you are copying {len(params)} files (excluding lyric files)
 Copy size in megabytes) {int(copy_size_mb)}
-Copy size in gigabytes) {copy_size_gb}
+Copy size in gigabytes) {int(copy_size_gb)}
 into the playlist) {self.song_paths[keys[dest_select][0]][0]}
 
 1) Continue                                               \\/
 0) Return                                                  |
 ___________________________________________________________|
 
-""")
+>>> """)
 
                     if confirm == "1": pass
 
                     elif confirm == "0":
+                        self.term_cleaner()
                         confirm_loop = False
                         break
 
@@ -1201,6 +1221,8 @@ ___________________________________________________________|
                 self.term_cleaner()
                 print("Invalid input, please select a playlist")
                 continue
+
+    #### METADATA BASED BULK DELETE ####
 
     def bulk_delete(self, params):
         while True:
@@ -1233,6 +1255,11 @@ ___________________________________________________________|
                 print("Invalid input! select 0 or 1.")
                 continue
 
+    #### METADATA BASED PLAYBACK ####
+
+    def metadata_player(self, params):
+        self.bulk_helper(params, "play", self.bnuy_path)
+
     #### Mutagen advanced search ####
 
     def advanced_investibunny(self):
@@ -1244,6 +1271,7 @@ ___________________________________________________________|
         "1": self.bulk_mover,
         "2": self.bulk_copy,
         "3": self.bulk_delete,
+        "4": self.metadata_player
         }
 
         # Generally unsupported extensions
@@ -1386,6 +1414,7 @@ __________________________________________________________\\/
 1) Move every result into a playlist (may take some time.)|
 2) Copy every result into a playlist (will take storage)  |
 3) Delete every result. (may take some time)              |
+4) Play every result                                      |
 0) Return                                                 |
 __________________________________________________________|
 
@@ -1415,6 +1444,87 @@ __________________________________________________________|
                 print("Invalid input.")
                 continue
 
+    #### LYRIC DOWNLOAD ####
+
+    def lrc_dl(self):
+
+        while True:
+            confirm = input("""
+___________________________________________________________
+Are you sure? this may take a while.                       |
+                                                           |
+1) Confirm                                                 |
+0) Return                                                  |
+___________________________________________________________|
+
+>>> """)
+
+            if confirm == "1": break
+            elif confirm == "0": return
+            else:
+                self.term_cleaner()
+                print("Invalid input! select 1 or 0.")
+                continue
+
+        # Downloads lyrics for existing songs
+        for _, tupl in self.song_paths.items():
+            # folder check
+            if self.folder_check(tupl): continue
+            # is stream check
+            if tupl[2]: continue
+
+            name, path, _, _, = tupl
+
+            print(f"Beginning download for {os.path.basename(path)}")
+
+            d = {"status": "finished", 
+                 "filename": "placeholder",
+                 "filepath": path,
+                 "info_dict": {},}
+
+            for file in os.listdir(path):
+
+                metadata = mutagen.File(os.path.join(path, file), easy=True)
+
+                if metadata is None:
+                    print(f"{file} is unsupported, or had no metadata! skipping..")
+                    continue
+
+                artist = metadata.get("artist")
+                title = metadata.get("title")
+                album = metadata.get("album")
+                fallback = False
+
+                err = False
+                if artist is None or title is None or album is None: err = True
+
+                elif len(artist) == 0 or len(album) == 0: err = True
+
+                if err:
+                    print(f"{file} had missing metadata, cannot download!")
+                    continue 
+                if len(title) == 0:
+                    print("No title metadata :(, fallbacking to filename.")
+                    title = os.path.splitext(file)[0]
+                    fallback = True
+
+
+                artist = artist[0]
+                if fallback: pass
+                else: title = title[0]
+                album = album[0]
+
+                duration = metadata.info.length
+                # spoofs the info dict for yt dlp hook
+                d["info_dict"] = {"artist": artist, 
+                                  "title": title,
+                                  "album": album,
+                                  "duration": duration,}
+                d["filename"] = file
+
+                self.yt_hook(d)
+
+
 
     #### PLAYLIST PICKER ####
 
@@ -1432,8 +1542,9 @@ __________________________________________________________|
 ▼ Extra commands ▼                                         |
                                                            |
 s) Search                                                  |
-as) Advanced Search (may be slow)                          |
-0) back                                                    |
+as) Advanced Search (may be slow)                           \\
+dl) Download lyrics for existing songs(note: this relies on metadata)
+0) back                                                     /
 ___________________________________________________________|
 
 >>> """)
@@ -1453,6 +1564,10 @@ ___________________________________________________________|
 
                 elif choice.lower() == "as":
                     self.advanced_investibunny()
+                    continue
+
+                elif choice.lower() == "dl":
+                    self.lrc_dl()
                     continue
 
                 else: choice = int(choice)
@@ -1486,7 +1601,7 @@ ___________________________________________________________|
                         self.term_cleaner()
                         print("The original folder is missing, did you move it or delete it?")
                         print("Deleting playlist for stability..")
-                        self.internal_delete(display_keys[choice][0])
+                        self.internal_delete(choice)
                         continue
 
                 picker_skip = False
@@ -1524,13 +1639,16 @@ ___________________________________________________________|
                     picker_skip = True
 
                 # Checks if the song path dict is empty, otherwise act normal
+                selection_loop = True
+                restart = False
+                while selection_loop:
 
-                if len(tmp_song) < 1:
-                    self.term_cleaner()
-                    print("Playlist is empty.\n")
-                    continue
-                if not picker_skip:
-                    choice = input("""
+                    if len(tmp_song) < 1:
+                        self.term_cleaner()
+                        print("Playlist is empty.\n")
+                        continue
+                    if not picker_skip:
+                        choice = input("""
 ___________________________________________________________
 ▼ Commands ▼                                               |
                                                            |
@@ -1548,31 +1666,40 @@ ___________________________________________________________|
 
 >>> """)
 
-                else: choice = "1"
+                    else: 
+                        choice = "1"
+                        break
 
-                self.term_cleaner()
-                tmp_choice = choice.split()
+                    self.term_cleaner()
+                    tmp_choice = choice.split()
 
-                if len(tmp_choice) == 2:
-                    num = int(tmp_choice[0])
-                    cmd = tmp_choice[1]
-                    path = tmp_song[num]
-                    params = {
+                    if len(tmp_choice) == 2:
+                        num = int(tmp_choice[0])
+                        cmd = tmp_choice[1]
+                        path = tmp_song[num]
+                        params = {
                             "num": num,
                             "cmd": cmd,
                             "path": path,
                             "songs": tmp_song,
                             }
 
-                    res = self.cmd_handler(params)
-                    # res is only not none when a indiv song is to be played
-                    if res is None:
-                        continue
+                        res = self.cmd_handler(params)
+                        # res is only not none when a indiv song is to be played
+                        if res is None:
+                            for num, file in tmp_song.items():
+                                print(f"{num}) {os.path.basename(os.path.splitext(file)[0])}")
+                            continue
 
-                    else:
-                        liked_handler = False
+                        else:
+                            liked_handler = False
+                            break
 
-                else: choice = int(choice)
+                    else: 
+                        choice = int(choice)
+                        break
+
+                if restart: continue
 
                 # Returns none which loops the code in self.audio_funct
                 if choice == 0: return None
@@ -1802,7 +1929,7 @@ Enter any key to continue.""")
                     self.song_paths = {}
                     self.initialized = False
                     self.no_hint = False
-                    self.shuffl = False
+                    self.shuffl = [False, "placeholder"]
                     self.time_used = 0
                     return
 
@@ -2986,26 +3113,15 @@ That will be the 4th playlist, and the folder associated with the number 6.""")
                 playlist = full.get(display_keys[int_keys[0]][0])
                 folder = full.get(display_keys[int_keys[1]][0])
 
-                restart = False
                 checked_keys = set()
 
-                for key in folder:
-                    check_loop = True
-                    while check_loop:
-                        retries = 0
-                        if display_keys[int_keys[0]][0] in checked_keys and retries != 2:
-                            print("Invalid input, this playlist already exists in the folder!")
-                            restart = True
-                            check_loop = False
-                            break
+                for key in folder[2:]:
+                    checked_keys.add(key)
 
-                        else: 
-                            checked_keys.add(key)
-                            retries += 1
-                            continue
+                if display_keys[int_keys[0]][0] in checked_keys:
+                    print("Folder already has that playlist.")
+                    continue
 
-
-                if restart: continue
 
                 err = None
                 err_msg = {
@@ -3553,7 +3669,6 @@ ___________________________________________________________|
             abs_path = os.path.join(path, file)
 
             key = max(metadata, default=0)+1
-            unsupported_key = max(metadata, default=0)+1
 
             if os.path.splitext(os.path.basename(file))[1] in invalid_ext:
                 continue
@@ -4005,6 +4120,8 @@ ___________________________________________________________
                 print("\nInvalid input.")
                 continue
 
+    #### BNUUYSTART ####
+    # Starts the main code loop
     def start_code(self):
         while True:
             if not self.initialized:

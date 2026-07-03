@@ -7,6 +7,7 @@
 
 ## Library
 ### Playlists
+
 - [x] Rename playlist
 - [x] Delete playlist from disk/internally
 - [x] Move/Add individual songs to playlists
@@ -16,18 +17,17 @@
 - [x] Playlist adding(Online download and stream, local files/folders both fully supported)
 - [x] Streamed and local playlists(stored and displayed seperately)
 - [x] Search for songs and playlists
-- [ ] Unlike directly from the liked songs song picker
 
-### Mutagen
-***This is currently being developed!***
+### Metadata handling
+
 - [x] Mutagen(optional dependency)
 - [x] Advanced Search
 - [x] Move every song into an existing playlist
 - [x] Copy every song into an existing playlist
 - [x] Delete every song
 - [x] Write new tags
-- [ ] Allow browsing of found songs
-- [ ] Download lyrics from preexisting songs(if metadata tags are available)
+- [x] Allow browsing of found songs
+- [x] Download lyrics from preexisting songs(if metadata tags are available)
 
 ### BnuuyFolders (internal)
 - [x] Internal folder system(Seperate from OS file sys folders for sorting playlists)
@@ -62,6 +62,7 @@
 - [x] Invalid/deleted filepaths are auto deleted from the database on startup.
 
 ### Settings & Stats
+***This is currently being developed!***
 - [x] Persistent shuffle
 - [ ] Timed used, time playing stats
 - [x] Toggleable main menu hint

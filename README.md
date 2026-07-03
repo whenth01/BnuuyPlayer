@@ -10,6 +10,8 @@
 
 **Want to view the changelog? View [BnuuyPlayer's changelog](README-ChangeLog.md)**
 
+**Need help? view [help](#help), [the cheatsheet](#cheatsheet), or [general advice.](#general-advice)**
+
 **New to BnuuyPlayer? View below, this will aid you in installation and act as a guide.**
 
 ## Installation 
@@ -55,6 +57,7 @@ brew install python3 git mpv
 ```
 Android(termux)
 ```bash
+pkg upgrade
 pkg install python git mpv
 ```
 
@@ -84,7 +87,7 @@ pip install yt-dlp requests --break-system-packages
 Newer systems lock Python to stop pip from clashing with OS managed packages, normally pip blocks this with "externally managed environment"
 It's safe here, as yt-dlp, requests and mutagen aren't packages the OS depends on
 
-***If you don't want to use --break-system-packages, run ▼***
+***If you don't want to use --break-system-packages, run this and redo the install command ▼***
 
 ```bash
 python3 -m venv venv && source venv/bin/activate
@@ -149,6 +152,7 @@ And more. (viewable in [[README-Features]]' mutagen section.)
     
 #### URL Not working
   BnuuyPlayer only supports direct URLs, a mirror or shortlink will not work. 
+  If it is a direct link, create a feature request with the site you want added.
 
 #### Streamed playlists cant be browsed song by song
   This is currently a known limitation and may be fixed in V2.
