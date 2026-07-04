@@ -62,19 +62,20 @@
 - [x] Invalid/deleted filepaths are auto deleted from the database on startup.
 
 ### Settings & Stats
-***This is currently being developed!***
 - [x] Persistent shuffle
 - [x] Timed used, time playing stats
 - [x] Toggleable main menu hint
 - [x] Maximum ram usage by MPV(minimum of 1)
 - [x] First run setup guide
 - [x] Toggleable --no-video toggle
-- [ ] Site whitelist menu
+- [x] Site whitelist menu
 
 ### EasterEggs
 - [ ] Hints are in settings.
 
 ## Nerd Area
+***This is currently being developed!***
+***This may take a while :(***
 - [ ] Full code splitup(into seperate files)
 ```
 __init__.py

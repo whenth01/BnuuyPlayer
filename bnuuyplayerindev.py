@@ -174,8 +174,9 @@ l cycle-values loop-file inf no"""
                "2": ("Keybinds ","Music player keybinds.", self.binding_menu),
                "3": ("Settings ", "Your settings, this is where important functions are.", self.settings),
                "4": ("Stats & EasterEggs", "Your statistics(such as time used)", self.stats_display),
-               "e": ("Exit", "Closes BnuuyPlayer", self.exity)
-                } 
+               "5": ("Add a new Song/Playlist", "Add a Song/Playlist(online or a file system folder) here:3", self.add_playlist),
+               "e": ("Exit", "Closes BnuuyPlayer", self.exity),
+                }
 
 
         self.valid_sentinels = {
@@ -941,9 +942,11 @@ ___________________________________________________________|
 
                     if search_select == "2": 
                         """Playlist route"""
+                        duplicates = 1
                         for num in entries.keys():
                             if name.lower() == num:
-                                name = f"{name} (2)"
+                                duplicates += 1
+                                name = f"{name} ({duplicates})"
                         entries[name.lower()] = path, is_stream, len(entries)+1, key
                         playlist_handler = True
 
@@ -1957,7 +1960,29 @@ Enter any key to continue.""")
         "6": "video",
         "7": "ram_allocated",
         "8": "gapless_toggle",
+        "9": "valid_domains",
         }
+        domain_backup = {"youtube.com",
+                        "youtu.be",
+                        "music.youtube.com",
+                        "soundcloud.com",
+                        "bandcamp.com",
+                        "dai.ly",
+                        "vimeo.com",
+                        "tiktok.com",
+                        "vm.tiktok.com",
+                        "dailymotion.com",
+                        "old.reddit.com",
+                        "v.redd.it",
+                        "reddit.com",
+                        "instagr.am",
+                        "instagram.com",
+                        "fb.watch",
+                        "facebook.com",
+                        "fb.com",
+                        "audiomack.com",
+                        "mixcloud.com"}
+
 
         failed_keys = {}
 
@@ -1970,7 +1995,6 @@ Enter any key to continue.""")
             # Checks for corrupted or failed keys, compiles to failed_keys
             if self.bulk_save.get(key) is None:
                 failed_keys[key] = item
-
 
         """Song paths recoverer"""
         # this is used to make self.shuffl a list as a flag
@@ -1990,7 +2014,8 @@ Enter any key to continue.""")
                     self.shuffl = [False, "placeholder"]
                     self.time_used = 0
                     self.time_playing = 0
-                    self.ram_allocated = 10
+                    self.ram_allocated = 10 
+                    self.valid_domains = domain_backup
                     return
 
                 make_list = False
@@ -2009,6 +2034,10 @@ Enter any key to continue.""")
                     """Allocated RAM"""
                     print("Allocated RAM config was lost, defaulting to 10mB")
                     self.ram_allocated = 10
+
+                if "9" in failed:
+                    print("Domain whitelist was lost!:( Defaulting to the original..")
+                    self.valid_domains = domain_backup
 
                 solved = []
                 for key, method in failed.items():
@@ -2100,6 +2129,8 @@ Corrupted/edited path) {tupl}""")
 
             try:
                 key = int(key)
+                if key == 9:
+                    self.valid_domains = set(tupl)
             except ValueError:
                 print(f"Invalid key was found, was the json modified?")
                 print(f"Deleting the entry at key {key} for stability.")
@@ -2163,6 +2194,7 @@ Corrupted/edited path) {tupl}""")
         self.bulk_save[6] = self.video
         self.bulk_save[7] = self.ram_allocated
         self.bulk_save[8] = self.gapless_toggle
+        self.bulk_save[9] = list(self.valid_domains)
 
         successful_saves = 0
         """Atomic write to disk"""
@@ -3169,42 +3201,35 @@ That will be the 4th playlist, and the folder associated with the number 6.""")
 
                 checked_keys = set()
 
+                err = None
+                checked_keys = set()
+
                 for key in folder[2:]:
                     checked_keys.add(key)
 
-                if display_keys[int_keys[0]][0] in checked_keys:
-                    print("Folder already has that playlist.")
-                    continue
-
-
-                err = None
-                err_msg = {
-                        "playlist_unfound": "No playlist found.",
-                        "folder_unfound": "No folder found.",
-                        "folder_is_playlist": "Selected folder was a playlist, invalid input",
-                        "playlist_is_folder": "Selected playlist was a folder, invalid input",
-                        "folder_is_liked_songs": "Can not add thentry into liked songs via this method.\nPlease go to playlist picker's song menu."
-                        }
-
                 if playlist is None: 
                     err = True
-                    msg = err_msg.get("playlist_unfound")
+                    msg = "No playlist found."
 
                 elif folder is None: 
                     err = True
-                    msg = err_msg.get("folder_unfound")
+                    msg = "No folder found."
 
                 elif not self.folder_check(folder): 
                     err = True
-                    msg = err_msg.get("folder_is_playlist")
+                    msg = "Selected folder was a playlist, invalid input"
 
                 elif self.folder_check(playlist):
                     err = True
-                    msg = err_msg.get("playlist_is_folder")
+                    msg = "Selected playlist was a folder, invalid input"
                 
                 elif folder[0] == "liked_songs":
                     err = True
-                    msg = err_msg.get("folder_is_liked_songs")
+                    msg = "Can not add the try into liked songs via this method.\nPlease go to playlist picker's song menu."
+
+                elif display_keys[int_keys[0]][0] in checked_keys:
+                    err = True
+                    msg = "Folder already has that playlist."
 
                 if err:
                     self.term_cleaner()
@@ -3364,16 +3389,43 @@ Enter the new site name.                                   |
 ___________________________________________________________|
 
 >>> """)
+                    self.term_cleaner()
+                    print("Checking if the site exists...")
+                    try:
+                        requests.get(f"https://{add_site}", timeout=10)
+                    except requests.exceptions.Timeout:
+                        print("Connection timed out, retry or try again soon!")
+                        continue
+
+                    except requests.exceptions.ConnectionError:
+                        print("Aborting! no internet connection :(")
+                        continue
+
+                    except (requests.exceptions.InvalidHeader, 
+                            requests.exceptions.InvalidURL, 
+                            requests.exceptions.InvalidSchema, 
+                            requests.exceptions.MissingSchema) as e:
+
+                        print("The site name was invalid, or a bad URL was inputted!")
+                        print(f"Error) {e}")
+
+                    except requests.exceptions.HTTPError as e:
+                        print(f"A HTTPError occurred! \nError message) {e}")
+
+                    else: print("Site is valid! continuing 𐔌՞. .՞𐦯")
+
 
                     self.valid_domains.add(add_site)
-                    self.term_cleaner()
+                    self.saver()
                     print("Successfully added site!:3")
                     continue
 
                 elif select == 2:
                     self.term_cleaner()
                     self.site_printer()
-                    del_site = input("""
+                    del_loop = True
+                    while del_loop:
+                        del_site = input("""
 ___________________________________________________________
 Please select the site you'd like to remove.               |
                                                            |
@@ -3382,15 +3434,23 @@ ___________________________________________________________|
 
 >>> """)
 
-                    confirm_loop = True
+                        confirm_loop = True
+                        try:
+                            del_site = int(del_site)
+                        except ValueError:
+                            self.term_cleaner()
+                            print("Invalid input, please enter a number!")
+                            continue
 
-                    if not isinstance(del_site, int) and del_site not in range(1,len(valid_domains)+1):
-                        self.term_cleaner()
-                        print(f"Invalid input, select 0-{len(valid_domains)}")
-                        continue
+                        if del_site not in range(1,len(self.valid_domains)+1):
+                            self.term_cleaner()
+                            print(f"Invalid input, select 0-{len(self.valid_domains)}")
+                            continue
+                        # breaks if no errs occur
+                        break
 
                     while confirm_loop:
-
+                        self.term_cleaner()
                         confirm = input(f"""
 Are you sure? you are removing {domains[del_site]}
 
@@ -3399,10 +3459,10 @@ Are you sure? you are removing {domains[del_site]}
 
 >>> """)
 
-                        if confirm == 1:
+                        if confirm == "1":
                             break
 
-                        elif confirm == 0:
+                        elif confirm == "0":
                             confirm_loop = False
                             break
 
@@ -3416,12 +3476,15 @@ Are you sure? you are removing {domains[del_site]}
 
 
                     self.valid_domains.remove(domains[del_site])
+                    self.saver()
+                    self.term_cleaner()
                     print("Successfully deleted site from whitelist!")
 
 
-            except Exception:
-                traceback.print_exc()
-                input()
+            except ValueError:
+                self.term_cleaner()
+                print("Invalid input!")
+                continue
 
     #### LIKED SONG REMOVE ####.
 

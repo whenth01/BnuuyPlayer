@@ -50,5 +50,6 @@ Note: The return's behaviour is currently too destructive, will be reworked soon
 - [x] Added a toggle that allows BnuuyPlayer to play video (PC only)
 - [x] Added gapless audio toggle
 - [x] Added time playing statistic
-- [x] Made the border of the first time welcome text smaller.
+- [x] Made the border of the first time welcome text smaller
+- [x] Added adding songs/playlists to main menu
 
