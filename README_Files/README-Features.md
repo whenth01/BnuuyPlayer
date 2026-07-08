@@ -71,21 +71,20 @@
 - [x] Site whitelist menu
 
 ### EasterEggs
+***This is currently being developed!***
 - [ ] Hints are in settings.
 
 ## Nerd Area
-***This is currently being developed!***
-***This may take a while :(***
-- [ ] Full code splitup(into seperate files)
+- [x] Full code splitup(into seperate files)
 ```
 __init__.py
-bnuycore.py
-bnuyplayer.py
-bnuyfolders.py
-bnuyplaylists.py
-bnuyadders.py
-bnuyfilehandler.py
-bnuynumUI.py
-bnuycurseUI.py
+__main__.py
+BnuuyPlayerCore.py
+BnuuyAudio.py
+BnuuyFolderManager.py
+BnuutPlaylistManager.py
+BnuuyFileManager.py
+BnuyNumUI.py
+BnuyCurseUI.py # Not made yet!
 ```
 - [ ] Code optimizations and streamlining(lib print rework, if/else chains turned into dictionary dispatches, removing anti patterns, etc)

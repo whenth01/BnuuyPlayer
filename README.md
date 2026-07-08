@@ -1,16 +1,17 @@
+bnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuy
 # BnuuyPlayer guide
 
-**No AI generated code was used.**
+**No AI generated code was used**
 
-**Contributor? View [BnuuyPlayer's documentation](README-Docs.md)**
+**Wanna contribute? View [BnuuyPlayer's documentation](README-Docs.md)**
 
-**Want to view features? View [BnuuyPlayer's featureset](README-Features.md)**
+**Wanna view features? View [BnuuyPlayer's featureset](README-Features.md)**
 
-**Want to see the current roadmap? View [BnuuyPlayer's roadmap](README-RoadMap.md)**
+**Wanna see the current roadmap? View [BnuuyPlayer's roadmap](README-RoadMap.md)**
 
-**Want to view the changelog? View [BnuuyPlayer's changelog](README-ChangeLog.md)**
+**Want to view the changelog? View [BnuuyPlayer's changelog](CHANGELOG.md)**
 
-**Need help? view [help](#help), [the cheatsheet](#cheatsheet), or [general advice.](#general-advice)**
+**Need help? view [help](#help), [the cheatsheet](#cheatsheet), or [general advice](#general-advice) :3**
 
 **New to BnuuyPlayer? View below, this will aid you in installation and act as a guide.**
 
@@ -21,13 +22,13 @@
 Linux (Debian, Ubuntu)
 ```bash
 sudo apt update
-sudo apt install python3 python3-pip git mpv
+sudo apt install python3 python3-pip mpv
 ``` 
 
 Linux(Fedora)
 ```bash
 sudo dnf update
-sudo dnf install -y python3 python3-pip git mpv
+sudo dnf install -y python3 python3-pip mpv
 ```
 
 Linux (centOS)
@@ -38,27 +39,27 @@ sudo dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-$(
 # Exclude this if you don't want MPV
 sudo dnf install -y https://download1.rpmfusion.org/free/el/rpmfusion-free-release-$(rpm -E %rhel).noarch.rpm
 
-sudo dnf install -y python3 python3-pip git mpv
+sudo dnf install -y python3 python3-pip mpv
 ```
 
 Linux (Arch)
 ```bash
 sudo pacman -Syu
-sudo pacman -S python python-pip git mpv
+sudo pacman -S python python-pip mpv
 ```
 
 Windows
 ```bash
-winget install Git.Git Python.Python.3.13 shinchiro.mpv
+winget install Python.Python.3.13 shinchiro.mpv
 ```
 MacOS
 ```bash
-brew install python3 git mpv
+brew install python3 mpv
 ```
 Android(termux)
 ```bash
 pkg upgrade
-pkg install python git mpv
+pkg install python mpv
 ```
 
 Python verification
@@ -67,10 +68,29 @@ python3 --version
 ```
 (If this fails, lookup a guide on your specific OS)
 
-Dependency download;
+### Installing bnuuyplayer itself, you have two methods
+
+#### 1: PyPI (most convenient)
+
+***Important note!***
+Installing BnuuyPlayer this route is convenient, but it also does mean BnuuyPlayer will use your site-packages as it's home, putting folders you make via BnuuyPlayer there.
 ```
-pip install yt-dlp requests
+pip install bnuuyplayer
 ```
+Installed dependencies:
+YT-DLP
+Requests
+Mutagen (optional, you can delete that one, although i recommend it since its only 400kb and opens up several features)
+
+To run BnuuyPlayer via this method, enter
+```bash
+bnuy
+```
+
+#### 2: git clone
+
+***This method will expose BnuuyPlayer and the folders you generate with it, being less convenient but you get access to searching for folders within the directory you chose.***
+
 Optional dependency:
 ```
 pip install mutagen
@@ -87,35 +107,12 @@ pip install yt-dlp requests --break-system-packages
 Newer systems lock Python to stop pip from clashing with OS managed packages, normally pip blocks this with "externally managed environment"
 It's safe here, as yt-dlp, requests and mutagen aren't packages the OS depends on
 
-***If you don't want to use --break-system-packages, run this and redo the install command ▼***
+***If you don't want to use --break-system-packages, please follow [this tutorial](https://www.geeksforgeeks.org/python/create-virtual-environment-using-venv-python/) on creating a venv by GeeksForGeeks***
 
-```bash
-python3 -m venv venv && source venv/bin/activate
+To run BnuuyPlayer via this method, while your in it's directory enter
 ```
-
-Now; go to a directory 
-***(Do not use the home directory.)***
-***(BnuuyPlayer will lagspike if you attempt to search for something if you do use the home directory.)***
-
-Linux, Android(termux), MacOS
-```bash
-cd path/to/your/directory
+python3  -m BnuuyPlayerCode
 ```
-Windows
-```bash
-cd path\to\your\directory
-```
-
-Finally, run)
-```bash
-git clone https://github.com/whenth01/BnuuyPlayer.git
-```
-and
-```
-python3 bnuuyplayerindev.py
-```
-***NOTE: This manual clone will be deprecated once BnuuyPlayer is moved into a PyPi package, after V1.1 you can safely delete git, and run BnuuyPlayer by running bnuy***
-
 
 ## Cheatsheet, General advice and help.
 

@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools >= 77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "BnuuyPlayer"
+description = "BnuuyPlayer is a terminal audio player, remaining to have a wide range of features while remaining light:3"
+version = "1.0.1"
+requires-python = ">=3.8"
+readme = "README.md"
+license = "Apache-2.0"
+keywords = ["bnuuy", "bun", "bnuy", "bnuuyplayer"]
+maintainers = [{name = "whenth01", email = "whenth01@proton.me"}]
+authors = [{name = "whenth01", email = "whenth01@proton.me"}]
+
+dependencies = [
+"requests",
+"yt-dlp",
+"mutagen",
+]
+
+[project.scripts]
+bnuy = "BnuuyPlayerCode.BnuuyPlayerCore:start"
+
+[tool.setuptools.packages.find]
+include = ["BnuuyPlayerCode"]
+
+[project.urls]
+Homepage = "https://github.com/whenth01/BnuuyPlayer"
+Repository = "https://github.com/whenth01/BnuuyPlayer.git"
+Issues = "https://github.com/whenth01/BnuuyPlayer/issues"
+Documentation = "https://github.com/whenth01/BnuuyPlayer/blob/beta/README.md"
+Changelog = "https://github.com/whenth01/BnuuyPlayer/blob/beta/CHANGELOG.md"

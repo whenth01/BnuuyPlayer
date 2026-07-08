@@ -53,3 +53,18 @@ Note: The return's behaviour is currently too destructive, will be reworked soon
 - [x] Made the border of the first time welcome text smaller
 - [x] Added adding songs/playlists to main menu
 
+## V1.0.1 RELEASE!!!!
+### BACKEND
+- Moved all UI into BnuyNumUI.py
+- Moved all folder related features into BnuuyFolderManager.py
+- Moved audio playback and playlist picking to BnuuyAudio.py
+- Moved playlist stuff into BnuuyPlaylistManager.py
+- Moved file stuff and saving into BnuuyFileManager.py
+- Moved except hook into ```__init__.py```
+
+### FEATURES
+- Added play all playlists in BnuuyFolder
+- All names can now be liked_songs!
+
+### OTHER
+- BnuuyPlayer has been uploaded to PyPI, removing manual install(except for binaries)!!:3
