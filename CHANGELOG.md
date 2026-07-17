@@ -68,3 +68,11 @@ Note: The return's behaviour is currently too destructive, will be reworked soon
 
 ### OTHER
 - BnuuyPlayer has been uploaded to PyPI, removing manual install(except for binaries)!!:3
+
+## V1.0.2
+### BUG FIXES
+- BnuuyPlayer now creates a folder in your home directory, using that as it's container for it's database (aswell as any folders you generate using BnuuyPlayer).
+**This was done as installing via pip polluted the python package dir, and made folders/jsons inaccsssible.**
+
+### PLANNED FEATURES
+- The bug fix will be expanded upon soon to allow you to decide where BnuuyPlayer's database lives.

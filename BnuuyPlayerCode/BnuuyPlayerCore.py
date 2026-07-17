@@ -87,7 +87,10 @@ class BnuuyPlayer:
         self.bulk_save = {}
 
         # Pathways for various purpose, bnuy_path is the dir BnuuyPlayer is in.
-        self.bnuy_path = os.path.dirname(__file__)
+        if os.path.isdir("/storage/emulated/0/"):
+            self.bnuy_path = "/storage/emulated/0/BnuuyPlayer_Database"
+        else:
+            self.bnuy_path = os.path.join(os.path.expanduser('~'), "BnuuyPlayer_Database")
         self.hist_path = os.path.join(self.bnuy_path, "BnuyPlayerHist.json")
         self.hist_backup1 = os.path.join(self.bnuy_path, "BnuyBackup1.json")
         self.hist_backup2 = os.path.join(self.bnuy_path, "BnuyBackup2.json")
@@ -171,6 +174,7 @@ l cycle-values loop-file inf no"""
 
 
         """METHOD CALLS """
+        self.bnuuyplayer_db_create()
         counter = threading.Thread(target=self.time_counter, daemon=True)
         counter.start()
         file_io.hist_creator(self)
@@ -179,6 +183,20 @@ l cycle-values loop-file inf no"""
         self.data = self.curr_bun_state("return")
         bnuuyplayer_state(db_ref, self.data)
         self.start_code()
+
+    """BnuuyPlayer Folder dir create"""
+    # This creates the folder that contains bnuuyplayer's db
+    def bnuuyplayer_db_create(self):
+        if not os.path.isdir(self.bnuy_path):
+            try:
+                os.mkdir(self.bnuy_path)
+            except PermissionError:
+                print("""
+                      Aborting...
+BnuuyPlayer has no permission to write files! 
+If you are on termux,
+Enter: termux-setup-storage""")
+                sys.exit()
 
     """CTRL C exit .self backup"""
 

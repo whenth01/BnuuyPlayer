@@ -70,10 +70,13 @@ python3 --version
 
 ### Installing bnuuyplayer itself, you have two methods
 
+**▼ Note for both methods ▼**
+**BnuuyPlayer will create a folder in your home directory on startup, this folder is it's database aswell as containing any folders you make using BnuuyPlayer.**
+**This allows you to simply create a folder yourself and move the songs into that folder and allow BnuuyPlayer to search for them, or let BnuuyPlayer make the folder and you move the songs.**
+
+
 #### 1: PyPI (most convenient)
 
-***Important note!***
-Installing BnuuyPlayer this route is convenient, but it also does mean BnuuyPlayer will use your site-packages as it's home, putting folders you make via BnuuyPlayer there.
 ```
 pip install bnuuyplayer
 ```
@@ -89,7 +92,18 @@ bnuy
 
 #### 2: git clone
 
-***This method will expose BnuuyPlayer and the folders you generate with it, being less convenient but you get access to searching for folders within the directory you chose.***
+***This method will expose BnuuyPlayer's code, allowing you to modify or read it***
+**IMPORTANT NOTE: This requires you have git installed!**
+
+Installing:
+```bash
+cd path/to/your/dir
+git clone https://github.com/whenth01/BnuuyPlayer.git
+```
+Dependencies:
+```
+pip install yt-dlp requests
+```
 
 Optional dependency:
 ```
