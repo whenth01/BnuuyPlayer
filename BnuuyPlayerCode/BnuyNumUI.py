@@ -68,6 +68,7 @@ BnuuyPlayer:                                               |
 BnuyPlayerHist.json                                        |
 BnuyBackup1.json                                           |
 BnuyBackup2.json                                           |
+DO_NOY_DELETE.json                                         |
 bnuybinds.conf                                             |
                                                            |
 ___________________________________________________________|""")
@@ -1268,14 +1269,25 @@ ___________________________________________________________|
 ___________________________________________________________|
 ▼ BnuuyPlayer main settings ▼                              |
                                                            |
-6) BnuuyFolder/Playlist sub settings                       |
-7) Song Metadata settings                                  |
+6) Change Bnuuyplayer's database location                  |
+7) BnuuyFolder/Playlist sub settings                       |
+8) Song Metadata settings                                  |
 0) Return.                                                 |
 ___________________________________________________________|""")
 
     select = intput()
     term_cleaner()
-    return select
+    return select 
+
+def db_location_enter(curr_path):
+    print(f"""
+___________________________________________________________
+Please enter a new path for BnuuyPlayer's database.       /\\
+Current folder the database is in) {os.path.basename(curr_path)}
+Note: Moving may take a while!                            \\/
+___________________________________________________________|""")
+    path = path_input()
+    return path
 
 #### MAX RAM SETTING SUB MENU 
 def max_ram(ram_allocated):

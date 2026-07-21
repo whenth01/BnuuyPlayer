@@ -125,7 +125,7 @@ It's safe here, as yt-dlp, requests and mutagen aren't packages the OS depends o
 
 To run BnuuyPlayer via this method, while your in it's directory enter
 ```
-python3  -m BnuuyPlayerCode
+python3 -m BnuuyPlayerCode
 ```
 
 ## Cheatsheet, General advice and help.
@@ -136,6 +136,12 @@ python3  -m BnuuyPlayerCode
   1. Return to Main Menu(if you arent already there)
   2. Settings
   3. Playlist sub settings
+  
+#### Play a song
+1. Be at the main menu
+2. Playlists (enter 1)
+3. Select the playlist you want (or make one using the tutorial above, and repeat this)
+4. Enter 1 to play all, or a special command
 
 ### Help
 

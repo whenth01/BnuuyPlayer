@@ -20,6 +20,7 @@
 Note: The return's behaviour is currently too destructive, will be reworked soon.
 
 - [ ] The code permanently rearranges the folder's files(how??)
+**left unsolved because no deletion occurs, just strange unreproducible behavior**
 - [x] The music stops playing after a song ends(in a whole playlist)
 **(Both of these are either out of bnuuyplayer's control, or unknown how they occur, but havent been reproduced)**
 
@@ -47,7 +48,7 @@ Note: The return's behaviour is currently too destructive, will be reworked soon
 ## V0.4 BETA
 ### FEATURES
 - [x] Added a toggle that allows the user to allocate a custom amount of RAM to MPV
-- [x] Added a toggle that allows BnuuyPlayer to play video (PC only)
+- [x] Added a toggle that allows BnuuyPlayer to play video (PC only, this'll do nothing on Android)
 - [x] Added gapless audio toggle
 - [x] Added time playing statistic
 - [x] Made the border of the first time welcome text smaller
@@ -64,7 +65,7 @@ Note: The return's behaviour is currently too destructive, will be reworked soon
 
 ### FEATURES
 - Added play all playlists in BnuuyFolder
-- All names can now be liked_songs!
+- All names can now be liked_songs, as it used to block the user to prevent a collision with a default BnuuyFolder
 
 ### OTHER
 - BnuuyPlayer has been uploaded to PyPI, removing manual install(except for binaries)!!:3
@@ -76,3 +77,21 @@ Note: The return's behaviour is currently too destructive, will be reworked soon
 
 ### PLANNED FEATURES
 - The bug fix will be expanded upon soon to allow you to decide where BnuuyPlayer's database lives.
+
+## V1.0.3
+### BUG FIXES
+- Fixed a bug where attempting to play an individual song/stream a playlist would crash the code
+
+- Fixed a bug where
+1. Playlist picker would open a BnuuyFolder(user chosen)
+2. Detects a dead playlist in the BnuuyFolder
+3. Sends the wrong key, reusing the key for the BnuuyFolder as the bad playlist's key, which would either delete the wrong playlist or fail :(
+- Added onto the previous bug, a failsafe in bnuuyfolder's manager where it catches the error and deletes the bad playlist itself
+(my library was affected by this bug. QwQ)
+
+- Other stuff(i forgor)
+
+
+### FEATURES
+- Added [planned feature](#planned-features) from V1.0.2
+- Added how to play a song to readme.md's help section

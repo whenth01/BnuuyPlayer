@@ -10,24 +10,31 @@ from . import BnuuyFolderManager as folder_manager
 # try: raise NewStart
 # except NewStart as e: e.create_hist()
 class NewStart(Exception):
-    def __init__(self, path):
+    def __init__(self, path,data):
         super().__init__(path)
-
+        self.path = path
         self.hist_path = os.path.join(path, "BnuyPlayerHist.json")
         self.hist_backup1 = os.path.join(path, "BnuyBackup1.json")
         self.hist_backup2 = os.path.join(path, "BnuyBackup2.json")
+        self.path_for_db = os.path.join(data.home_path(), "DO_NOT_DELETE.json")
         self.bulk_save = {}
 
     def create_hist(self):
-        with open(self.hist_path, "w") as f:
-            json.dump(self.bulk_save, f, indent=2)
+        if not os.path.isfile(self.hist_path):
+            with open(self.hist_path, "w") as f:
+                json.dump(self.bulk_save, f, indent=2)
 
-        with open(self.hist_backup1, "w") as f:
-            json.dump(self.bulk_save, f, indent=2)
+        if not os.path.isfile(self.hist_backup1):
+            with open(self.hist_backup1, "w") as f:
+                json.dump(self.bulk_save, f, indent=2)
 
-        with open(self.hist_backup2, "w") as f:
-            json.dump(self.bulk_save, f, indent=2)
+        if not os.path.isfile(self.hist_backup2):
+            with open(self.hist_backup2, "w") as f:
+                json.dump(self.bulk_save, f, indent=2)
 
+        if not os.path.isfile(self.path_for_db):
+            with open(self.path_for_db, "w") as f:
+                json.dump(self.path, f, indent=2)
 
 
 class LoadAndRecov():
@@ -37,10 +44,116 @@ class LoadAndRecov():
         self.hist_backup1 = bnuydata.hist_backup1
         self.hist_backup2 = bnuydata.hist_backup2
 
+    #### MOVE DATABASE ####
+    def move_db(self, new_path):
+        from shutil import move
+        if self.data.bnuy_path == new_path:
+            ui.general_exception("The database already exists in the selected path!")
+            return
+
+        if not os.path.isdir(new_path):
+            ui.special_exception(f"{new_path} isnt a valid folder! Aborting..")
+            return
+        # this collects every file for movement
+        stuff_in_old_db = []
+        stuff_in_new_db = os.listdir(new_path)
+
+        for file in os.listdir(self.data.bnuy_path):
+            if file == "DO_NOT_DELETE.json": continue
+            stuff_in_old_db.append(file)
+
+        # this moves every file
+        for file in stuff_in_old_db:
+            try:
+                src = os.path.join(self.data.bnuy_path, file)
+                if file in stuff_in_new_db:
+                    print(f"A file/folder already exists with the name of {file} already exists in the new path!")
+                    print("Skipping..")
+                    continue
+                move(src, new_path)
+                print(f"Moved) {file}")
+
+            except PermissionError:
+                ui.special_exception("Aborting!! BnuuyPlayer is missing permission from writing into that folder!")
+                continue
+
+            except OSError as e:
+                print(f"{file} failed to move! Error below, continuing..")
+                print(e)
+                continue
+        else:
+
+            for num, tupl in self.data.song_paths.items():
+                # ignore folders
+                if folder_manager.bnuuyfolder_check(tupl): continue
+
+                name, path, is_stream, funct = tupl
+                # ignore streamed
+                if is_stream: continue
+
+                # This fixes the paths from the old bnuy_path into the new one!:3
+                if self.data.bnuy_path in path:
+                    # this cuts up the path
+                    split_path = path.split(self.data.bnuy_path)
+                    # rewrites the old path with the new one anr combines
+                    split_path[0] = new_path
+                    path = split_path[0] + split_path[1]
+                    
+                    # this ensures that the file/dir actually moved before rewriting
+                    folder_not_exists = False
+                    file_not_exists = False
+                    if not os.path.isfile(path): file_not_exists = True
+                    if not os.path.isdir(path): folder_not_exists = True
+                    if file_not_exists and folder_not_exists: continue
+
+                    # rewrites old entry
+                    self.data.song_paths[num] = name, path, is_stream, funct
+
+            tries = 0
+            while tries < 2:
+                try:
+                    self.save_db_path()
+                    print("Successfully saved changes!:3")
+                    break
+                except (OSError, PermissionError) as e:
+                    if tries == 1:
+                        print("Failed!:( Error is below, before quitting please note that your library is fine, but unlinked")
+                        print(f"Fix the error and retry!\n\n{e}")
+                        break
+                    ui.special_exception("An unknown error occurred when saving the path, retrying 1 more time..")
+                    tries += 1
+
+            self.data.bnuy_path = new_path
+
+            self.data.hist_path = os.path.join(new_path, "BnuyPlayerHist.json") 
+            self.hist_path = os.path.join(new_path, "BnuyPlayerHist.json")
+
+            self.data.hist_backup1 = os.path.join(new_path, "BnuyBackup1.json")
+            self.hist_backup1 = os.path.join(new_path, "BnuyBackup1.json")
+
+            self.data.hist_backup2 = os.path.join(new_path, "BnuyBackup2.json")
+            self.hist_backup2 = os.path.join(new_path, "BnuyBackup2.json")
+
+            self.data.keybind_dir = os.path.join(new_path, "bnuybinds.conf")
+
+    #### SAVE DATABASE PATH ####
+
+    def save_db_path(self):
+        home_path = os.path.join(self.data.home_path(), "DO_NOT_DELETE.json")
+
+        db_tmp_path = os.path.join(self.data.home_path(), "DO_NOT_DELETE.json.tmp")
+        db_path = home_path
+
+        with open(db_tmp_path, "w") as f:
+            json.dump(self.data.bnuy_path, f)
+
+        os.replace(db_tmp_path, db_path)
+
     #### SAVE DATABASE ####
 
     def saver(self):
         tmp_handler = {}
+
         tmp_path = os.path.join(self.data.bnuy_path, "BnuyPlayerHist.json.tmp")
 
         """Save compiler"""
@@ -77,8 +190,6 @@ class LoadAndRecov():
         # Uses successful saves to make sure all saves were uncorrupted
 
         try:
-
-
             with open(tmp_path, "w") as f:
                 json.dump(self.data.bulk_save, f, indent=2)
             os.replace(tmp_path, self.hist_path)
@@ -96,12 +207,17 @@ class LoadAndRecov():
                     backup2.write(backup1.read())
                 successful_saves += 1
 
-        except(FileNotFoundError, OSError) as e:
-            if successful_saves == 0:
-                print(f"Device ERROR during save, BnuuyPlayer is unable to work properly! Error message: \n\n{e}")
+        except OSError as e:
+            import sys
+            print(f"Device ERROR during save, BnuuyPlayer is unable to work properly! Error message: \n\n{e}\n")
+            print("Do not attempt to re-run BnuuyPlayer until this has been fixed! Your library could get corrupted.")
+            print("Exiting for safety..")
+            sys.exit()
 
-            else:
-                self.corr_backup()
+        except FileNotFoundError:
+            import sys
+            print("BnuuyPlayer's database is missing! Emergency shutdown..")
+            sys.exit()
 
 
     #### CORRUPTED HIST CREATOR ####
@@ -445,7 +561,7 @@ def hist_creator(data):
     # If it doesnt exist, raise NewStart
     try:
         if not os.path.isfile(data.hist_path) and not os.path.isfile(data.hist_backup2) and not os.path.isfile(data.hist_backup1): 
-            raise NewStart(data.bnuy_path)
+            raise NewStart(data.bnuy_path, data)
 
         bnuy_file_stuff.processor()
 

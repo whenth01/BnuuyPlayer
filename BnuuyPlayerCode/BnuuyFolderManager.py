@@ -90,7 +90,6 @@ class BnuuyFolder():
             playlists = {}
             try:
 
-                ui.term_cleaner()
                 name = tupl[1]
 
                 if tupl[0] == "liked_songs":
@@ -106,7 +105,16 @@ ___________________________________________________________/\\
                     disp_keys[len(disp_keys)+1] = num
 
                 for key, og_key in disp_keys.items():
-                    name, path, is_stream, function = self.data.song_paths[og_key]
+                    try:
+                        name, path, is_stream, function = self.data.song_paths[og_key]
+                    except KeyError:
+                        print("A playlist became untracked!:(, deleting to prevent a crash..")
+                        # the try except is needed, as it'll try deleting the playlist too
+                              # of which none exists, triggering the outer except
+                        try: self.data.internal_delete(og_key)
+                        except KeyError: pass
+                        continue
+
                     if is_stream:
                         print(f"{key}) {name} (Online stream)")
                     else: 
@@ -385,7 +393,7 @@ ___________________________________________________________/\\
                             path = os.path.join(root, file)
                             liked[curr_index] = path
                             found = True
-
+                            print(f"{os.path.basename(path)} had gone missing, so BnuuyPlayer replaced it with {file}!:3 Ensure that they're the same.")
                             break 
 
                     if found: 

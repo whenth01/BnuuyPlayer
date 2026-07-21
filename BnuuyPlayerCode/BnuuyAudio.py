@@ -56,16 +56,18 @@ class BnuuyDJ():
 
                     if res is not None:
                         values = res.get("selected")
+                        choice = res.get("key")
 
                         if values is None: 
                             liked_handler = True
                             path = res
                             is_stream = True
+
                         # return route
                     else: continue
 
-                    # regular route
                     if values is not None:
+                        """regular route"""
                         name, path, is_stream, function = values
 
                 else: name, path, is_stream, function = tupl
@@ -160,7 +162,7 @@ class BnuuyDJ():
                 if restart: continue
 
                 elif choice == 1: pass 
-                elif liked_handler is False and choice < 2: pass
+                elif liked_handler is False and int(tmp_choice[0]) < 2: pass
                 # automatically moves on, no need for extra logic
 
                 else: raise ValueError 

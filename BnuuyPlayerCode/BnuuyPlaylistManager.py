@@ -359,6 +359,9 @@ class PlaylistAdding():
                                 except KeyError:
                                     ui.general_exception("Bad number entered!")
                                     continue
+                                except ValueError:
+                                    ui.general_exception()
+                                    continue
 
                         case 2:
 
@@ -382,10 +385,6 @@ class PlaylistAdding():
                             # if user selects 0, use folder name
                             # else use disp name
                             name = None
-                            try:
-                                os.rmdir(path)
-                            except (OSError, FileNotFoundError, PermissionError): 
-                                pass 
                             if disp_name == "1": 
                                 name = folder_name
 

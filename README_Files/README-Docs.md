@@ -10,11 +10,21 @@ from . import BnuuyFileManager
 file_stuff = BnuuyFileManager.LoadAndRecov() # instantiation
 file_stuff.saver()
 ```
+Or, to avoid a circular instantiation
+```python
 
+class Example()
+    def __init__(self, bnuydata):
+        self.data = bnuydata # bnuydata is the self object passed from the core file, which already instantiated everything
+ 
+   def some_method(self)
+       self.data.file_manager.save()
+ 
+```
 ### Delete from database
 ```python
-# (assuming you transported the core object from BnuuyPlayerCore)
-self.main_obj.internal_delete(tupl)
+# (assuming you transported the core object from BnuuyPlayerCore, in a similar method as shown above)
+self.data.internal_delete(tupl)
 ```
 
 ### How BnuuyPlayer handles JSON and it's database.
@@ -48,7 +58,7 @@ Which is storing the self.song_paths key next to a cleanly ordered one.
 
   The pointer is either a filepath or a URL, the code skips having to do a live request to differentiate by using is_stream(a boolean, True when its a URL and False when not.)
     
-  audio_funct is what does the subprocess call to MPV to begin playing, playlist_picker and lib_print handle compiling the necessary information for audio_funct8
+  audio_funct is what does the subprocess call to MPV to begin playing, playlist_picker and lib_print handle compiling the necessary information for audio_funct
 
 #### Folders
   BnuuyPlayer stores folders as a list of pointers to the playlists rather then a full tuple copy to stay storage efficient.

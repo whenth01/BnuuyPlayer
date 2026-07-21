@@ -95,6 +95,7 @@ class BnuuyPlayer:
         self.hist_backup1 = os.path.join(self.bnuy_path, "BnuyBackup1.json")
         self.hist_backup2 = os.path.join(self.bnuy_path, "BnuyBackup2.json")
         self.keybind_dir = os.path.join(self.bnuy_path, "bnuybinds.conf")
+        self.db_path()
 
         """Module class init"""
         self.BnuyFolder = bnuyfolder.BnuuyFolder(self)
@@ -183,20 +184,63 @@ l cycle-values loop-file inf no"""
         self.data = self.curr_bun_state("return")
         bnuuyplayer_state(db_ref, self.data)
         self.start_code()
+    
+    """DB path gen"""
+
+    def home_path(self):
+        if os.path.isdir("/storage/emulated/0/"):
+            path = "/storage/emulated/0/BnuuyPlayer_Database"
+        else:
+            path = os.path.join(os.path.expanduser('~'), "BnuuyPlayer_Database")
+        return path
+
+    """Saved DB path"""
+    # This emsures that a user entered path stays persistent.
+    def db_path(self):
+        import json
+        path = os.path.join(self.home_path(), "DO_NOT_DELETE.json")
+        if not os.path.isfile(path): return
+
+        try:
+            with open(path) as f:
+                saved_path = json.load(f)
+
+        except (json.JSONDecodeError, FileNotFoundError):
+            ui.special_exception(f"DO_NOT_DELETE.json is missing/corrupted, meaning BnuuyPlayer is no longer linked with your library")
+            print("If you deleted it, maybe dont delete DO_NOT_DELETE.json QwQ") 
+            print("To fix this, simply go to settings, change Bnuuy database location, and re-enter the last path!:3")
+            return
+
+        except OSError as e:
+            ui.special_exception(f"An unknown error occurred!\n\n{e}")
+
+        if self.bnuy_path == saved_path: return
+        if not os.path.isdir(saved_path):
+            ui.special_exception("The path to your selected database location seems to be unlinked! :(")
+            print("To fix this, simply find the new folder path and re-enter it at settings.")
+            return
+        self.bnuy_path = saved_path
+        self.hist_path = os.path.join(self.bnuy_path, "BnuyPlayerHist.json")
+        self.hist_backup1 = os.path.join(self.bnuy_path, "BnuyBackup1.json")
+        self.hist_backup2 = os.path.join(self.bnuy_path, "BnuyBackup2.json")
+        self.keybind_dir = os.path.join(self.bnuy_path, "bnuybinds.conf")
+
 
     """BnuuyPlayer Folder dir create"""
     # This creates the folder that contains bnuuyplayer's db
     def bnuuyplayer_db_create(self):
-        if not os.path.isdir(self.bnuy_path):
+        if not os.path.isdir(self.bnuy_path) and not os.path.isfile(self.bnuy_path):
             try:
-                os.mkdir(self.bnuy_path)
+                os.makedirs(self.bnuy_path)
             except PermissionError:
                 print("""
-                      Aborting...
+Aborting...
 BnuuyPlayer has no permission to write files! 
 If you are on termux,
 Enter: termux-setup-storage""")
                 sys.exit()
+            except OSError as e:
+                ui.special_exception(f"An unknown error occurred! Message below.\n\n{e}")
 
     """CTRL C exit .self backup"""
 
@@ -802,7 +846,6 @@ Enter: termux-setup-storage""")
 
 
     #### MULTIPLE FILE MOVER ####
-    # Note: all of these are currently unfinished
     def bulk_mover(self, params):
         while True:
             try:
@@ -964,7 +1007,7 @@ Enter: termux-setup-storage""")
             "album": "album",
             "genre": "genre",
             }
-        # every menu below this hasnt been pushed to BnuyNumUI.py
+
         while True:
             try:
 
@@ -1291,7 +1334,6 @@ Enter: termux-setup-storage""")
                 elif select == 2:
                     ui.site_printer(self.valid_domains)
                     del_loop = True
-                    retry = False
 
                     while del_loop:
                         del_site = ui.del_site_select()
@@ -1309,7 +1351,7 @@ Enter: termux-setup-storage""")
                         elif del_site not in range(1,len(self.valid_domains)+1):
                             ui.general_exception(f"Select 0-{len(self.valid_domains)}")
                             continue
-                        # breaks if no errs occur
+                        # breaks if no errs or matches occur
                         break
 
                     while confirm_loop:
@@ -1569,10 +1611,50 @@ Please select the playlist, then what setting you'd like in the same message sep
                     self.site_whitelist_handler()
 
                 elif choice == 6:
+                    back = False
+
+                    while True:
+                        new_path = ui.db_location_enter(self.bnuy_path)
+                        if new_path == "0": 
+                            back = True
+                            break
+
+                        if not os.path.isdir(new_path):
+                            ui.special_exception(f"Invalid path, no folder named {os.path.basename(new_path)} exists!")
+                            continue 
+
+                        break
+
+                    if back is True: continue
+
+                    while True:
+                        try:
+
+                            confirm = ui.confirm(self.bnuy_path, new_path)
+
+                            if confirm == 1: 
+                                """Confirmed"""
+                                break 
+                            elif confirm == 0:
+                                """Return"""
+                                back = True
+                                break
+
+                            else: raise ValueError
+
+                        except ValueError:
+                            ui.general_exception()
+                            continue
+
+                    if back is True: continue
+
+                    self.BnuyFileManager.move_db(new_path)
+
+                elif choice == 7:
                     """Playlist sub settings"""
                     self.BnuyPlaylistManagement.playlist_settings()
 
-                elif choice == 7:
+                elif choice == 8:
                     """Metadata settings"""
                     self.metadata_settings()
 
