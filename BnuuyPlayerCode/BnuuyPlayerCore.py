@@ -165,12 +165,43 @@ l cycle-values loop-file inf no"""
                 "mixcloud.com"}
 
         self.main_operations = {
-               "1": ("Playlists", "Your library, your songs/playlists are here.", self.BnuyDJ.audio_funct),
-               "2": ("Keybinds ","Music player keybinds.", ui.binding_menu),
-               "3": ("Settings ", "Your settings, this is where important functions are.", self.settings),
-               "4": ("Stats & EasterEggs", "Your statistics(such as time used)", self.stats_display),
-               "5": ("Add a new Song/Playlist", "Add a Song/Playlist(online or a file system folder) here:3", self.BnuyPlaylistAdd.add_playlist),
-               "e": ("Exit", "Closes BnuuyPlayer", self.exity),
+               "1": ("Playlists", 
+               "Your library, your songs/playlists are here.", 
+               self.BnuyDJ.audio_funct),
+               
+               "2": ("Keybinds ",
+               "Music player keybinds.", 
+               ui.binding_menu),
+               
+               "3": ("Settings ", 
+               "Your settings, this is where important functions are.", 
+               self.settings),
+               
+               "4": ("Stats & EasterEggs",
+                "Your statistics(such as time used)",
+                self.stats_display),
+                
+               "5": ("Add a new Song/Playlist",
+               "Add a Song/Playlist(online or a file system folder) here:3", 
+               self.BnuyPlaylistAdd.add_playlist),
+               
+               "e": ("Exit", 
+               "Closes BnuuyPlayer", 
+               self.exity),
+                }
+
+        # note: structure should be 
+        # name, hint, extra_info, found(which is True/False)
+        # Extra info should only be shown when Found is True
+        self.easter_eggs = {
+                "1": ("Rick Astley!?", 
+                      "Download a song, and BnuuyPlayer will never give you up ;3", 
+                      "Download 'Never gonna give you up' by Rick Astley",
+                      False),
+                "2": ("28 July 1914",
+                      "Take Me Out — Franz Ferdinand",
+                      "Download 'Take Me Out' by the band Franz Ferdinand",
+                      False)
                 }
 
 
@@ -195,7 +226,7 @@ l cycle-values loop-file inf no"""
         return path
 
     """Saved DB path"""
-    # This emsures that a user entered path stays persistent.
+    # This ensures that a user entered path stays persistent.
     def db_path(self):
         import json
         path = os.path.join(self.home_path(), "DO_NOT_DELETE.json")
@@ -213,6 +244,7 @@ l cycle-values loop-file inf no"""
 
         except OSError as e:
             ui.special_exception(f"An unknown error occurred!\n\n{e}")
+            return
 
         if self.bnuy_path == saved_path: return
         if not os.path.isdir(saved_path):
@@ -293,8 +325,7 @@ Enter: termux-setup-storage""")
         while True:
             try:
                 
-                choice = ui.easter_egg_menu()
-                ui.term_cleaner()
+                choice = ui.easter_egg_menu(self.easter_eggs)
 
                 match choice:
                     case 0: break
@@ -306,8 +337,7 @@ Enter: termux-setup-storage""")
                     case _: raise ValueError
 
             except ValueError: 
-                ui.term_cleaner()
-                print("Invalid input!\n")
+                ui.general_exception()
                 continue
 
 
@@ -384,7 +414,7 @@ Enter: termux-setup-storage""")
         # This also has the side-effect of auto sorting stream/local.
         tmp_full_dict = local_dict | stream_dict
 
-        # We dont neee to reenumerate here as it was already done earlier.
+        # We dont need to reenumerate here as it was already done earlier.
         full_dict = tmp_full_dict | folder_dict
 
         self.song_paths = full_dict
@@ -667,13 +697,11 @@ Enter: termux-setup-storage""")
 
                 search_select = ui.investibun_main()
 
-                if search_select == "0":
-                    return
+                if search_select == "0": return
 
                 search_query = ui.investibun_query()
                 
-                if search_query == "0":
-                    return
+                if search_query == "0": return
 
                 entries = {}
                 songs = []
@@ -682,14 +710,14 @@ Enter: termux-setup-storage""")
                 playlist_handler = False
 
                 for key, tupl in self.song_paths.items():
-                    if bnuyfolder.bnuuyfolder_check(tupl) is True: continue
+                    if bnuyfolder.bnuuyfolder_check(tupl): continue
 
-                    else: name, path, is_stream, _ = tupl
+                    else:
+                        name, path, is_stream, _ = self.song_paths[key]
 
                     if search_select == "2": 
                         """Playlist route"""
                         disp_name = name
-                        duplicates = 1
 
                         entries[len(entries)+1] = path, is_stream, name.lower(), key, disp_name
                         playlists.append(name.lower())
@@ -702,7 +730,9 @@ Enter: termux-setup-storage""")
                             compiler = []
                             for name in os.listdir(path):
                                 split = os.path.splitext(name)
-                                if split[1] in invalid_ext: continue
+                                # filters out unwanted files
+                                if split[1].lower() in invalid_ext: continue
+                                # appends a lowercase filename to the list
                                 compiler.append(split[0].lower())
 
                             entries[key] = compiler
@@ -721,9 +751,10 @@ Enter: termux-setup-storage""")
                         search = set(difflib.get_close_matches(search_query.lower(), songs, n=3, cutoff=0.5))
                     else:
                         search = set(difflib.get_close_matches(search_query.lower(), playlists, n=3, cutoff=0.5))
-                    
+
                     info = {
                         "search": search,
+                        "disp_keys": keys,
                         "entries": entries,
                         "playlists": self.song_paths,
                         "playlist_handler": playlist_handler,
@@ -1087,7 +1118,10 @@ Enter: termux-setup-storage""")
                             break
 
                         else:
-                            ui.advanced_result_print(results, self.song_paths)
+                            data = self.lib_print(local_only=False, folder_only=False, suppress_print=True)
+                            keys = data.get("display_keys")
+
+                            ui.advanced_result_print(results, self.song_paths, keys)
                             choice = ui.advanced_result_selection()
 
                             funct = bulk_methods.get(choice)
@@ -1138,11 +1172,11 @@ Enter: termux-setup-storage""")
                  "filename": "placeholder",
                  "filepath": path,
                  "info_dict": {},}
-            try:
-                files = os.listdir(path)
-            except FileNotFoundError:
-                ui.special_exception("The playlist's folder was deleted or is missing, aborting!")
+            if not os.path.isdir(path):
+                ui.special_exception("A playlist's folder was deleted or is missing, aborting!")
                 print(f"Missing the folder) {os.path.basename(path)}")
+                continue
+
             for file in os.listdir(path):
 
                 if os.path.isdir(os.path.join(path, file)): continue
@@ -1199,6 +1233,16 @@ Enter: termux-setup-storage""")
     def exity(self):
         sys.exit()
 
+    def easter_egg_save(self, egg_key):
+        if not self.easter_eggs[egg_key][3]:
+            print(f"\n\nYou found EasterEgg {egg_key}!:3")
+            easter_egg = list(self.easter_eggs[egg_key])
+
+            easter_egg[3] = True
+
+            self.easter_eggs[egg_key] = tuple(easter_egg)
+            self.BnuyFileManager.saver()
+
     #### YT-dlp Hook ####
 
     """LRC downloader"""
@@ -1218,7 +1262,13 @@ Enter: termux-setup-storage""")
             album = info_dict.get("album")
 
             if artist is None: artist = info_dict.get("uploader")
+            try:
+                if "never gonna give you up" in title.lower():
+                    self.easter_egg_save("1")
 
+                elif "take me out" in title.lower() and "franz ferdinand" in artist.lower() or "franz ferdinand" in title.lower():
+                    self.easter_egg_save("2")
+            except AttributeError: pass
 
             try:
                 """lrclib lookup"""
@@ -1275,7 +1325,7 @@ Enter: termux-setup-storage""")
                 # 404 means no lyrics found as per lrclib responses
 
             elif lrc_get.status_code == 404:
-                print("\n No lyrics found!")
+                print("\nNo lyrics found!")
 
             else:
                 print(f"\nUnknown error) {lrc_get.status_code} \n Lyrics not saved.")
@@ -1404,9 +1454,9 @@ Enter: termux-setup-storage""")
 
             key = max(metadata, default=0)+1
 
-            if os.path.splitext(os.path.basename(file))[1] in invalid_ext:
+            if os.path.splitext(os.path.basename(file))[1].lower() in invalid_ext:
                 continue
-            elif os.path.splitext(os.path.basename(file))[1] in unsupported_ext:
+            elif os.path.splitext(os.path.basename(file))[1].lower() in unsupported_ext:
                 continue
 
             data = mutagen.File(abs_path, easy=True)

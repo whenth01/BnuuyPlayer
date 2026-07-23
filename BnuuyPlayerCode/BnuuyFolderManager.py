@@ -129,7 +129,9 @@ ___________________________________________________________/\\
 
 
                 if choice == "0": return None
-                elif choice == "a": return playlists
+                elif choice == "a":
+                    print("WARNING: None of the extra commands work, only individual picking/playing all works!")
+                    return playlists
 
                 else:
                     choice = int(choice)

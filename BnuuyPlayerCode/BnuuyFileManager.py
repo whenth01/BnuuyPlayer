@@ -92,36 +92,20 @@ class LoadAndRecov():
                 if is_stream: continue
 
                 # This fixes the paths from the old bnuy_path into the new one!:3
-                if self.data.bnuy_path in path:
+                if path.startswith(self.data.bnuy_path + os.path.sep):
+
                     # this cuts up the path
-                    split_path = path.split(self.data.bnuy_path)
+                    path_len = len(self.data.bnuy_path)+1
+                    split_path = path[path_len:]
+
                     # rewrites the old path with the new one anr combines
-                    split_path[0] = new_path
-                    path = split_path[0] + split_path[1]
-                    
-                    # this ensures that the file/dir actually moved before rewriting
-                    folder_not_exists = False
-                    file_not_exists = False
-                    if not os.path.isfile(path): file_not_exists = True
-                    if not os.path.isdir(path): folder_not_exists = True
-                    if file_not_exists and folder_not_exists: continue
+                    path = os.path.join(new_path, split_path)
+
+                    # this ensures that the dir actually moved before rewriting
+                    if not os.path.isdir(path): continue
 
                     # rewrites old entry
                     self.data.song_paths[num] = name, path, is_stream, funct
-
-            tries = 0
-            while tries < 2:
-                try:
-                    self.save_db_path()
-                    print("Successfully saved changes!:3")
-                    break
-                except (OSError, PermissionError) as e:
-                    if tries == 1:
-                        print("Failed!:( Error is below, before quitting please note that your library is fine, but unlinked")
-                        print(f"Fix the error and retry!\n\n{e}")
-                        break
-                    ui.special_exception("An unknown error occurred when saving the path, retrying 1 more time..")
-                    tries += 1
 
             self.data.bnuy_path = new_path
 
@@ -135,6 +119,21 @@ class LoadAndRecov():
             self.hist_backup2 = os.path.join(new_path, "BnuyBackup2.json")
 
             self.data.keybind_dir = os.path.join(new_path, "bnuybinds.conf")
+            
+            tries = 0
+            while tries < 2:
+                try:
+                    self.save_db_path()
+                    print("Successfully saved changes!:3")
+                    break
+                except (OSError, PermissionError) as e:
+                    if tries == 1:
+                        print("Failed!:( Error is below, before quitting please note that your library is fine, but will become unlinked on the next session")
+                        print(f"Fix the error and retry!\n\n{e}")
+                        break
+                    ui.special_exception("An unknown error occurred when saving the path, retrying 1 more time..")
+                    tries += 1
+
 
     #### SAVE DATABASE PATH ####
 
@@ -182,6 +181,7 @@ class LoadAndRecov():
         self.data.bulk_save[7] = self.data.ram_allocated
         self.data.bulk_save[8] = self.data.gapless_toggle
         self.data.bulk_save[9] = list(self.data.valid_domains)
+        self.data.bulk_save[10] = self.data.easter_eggs
 
         successful_saves = 0
         """Atomic write to disk"""
@@ -308,7 +308,10 @@ class LoadAndRecov():
             with open(path) as f:
                 self.data.bulk_save = json.load(f)
 
-        except(json.JSONDecodeError, AttributeError, SyntaxError, FileNotFoundError):
+        except(json.JSONDecodeError,
+               AttributeError,
+               SyntaxError,
+               FileNotFoundError):
             # Returns back to processor to let it do the job of incrementing
             pass
 
@@ -367,6 +370,7 @@ class LoadAndRecov():
         "7": "ram_allocated",
         "8": "gapless_toggle",
         "9": "valid_domains",
+        "10": "easter_eggs",
         }
         domain_backup = {"youtube.com",
                         "youtu.be",
@@ -453,6 +457,10 @@ class LoadAndRecov():
                     print("Domain whitelist was lost!:( Defaulting to the original..")
                     self.data.valid_domains = domain_backup
                     del failed["9"]
+
+                if "10" in failed:
+                    print("Your found EasterEggs have been lost, resetting to defaults..")
+                    del failed["10"]
 
                 solved = []
                 for key, method in failed.items():

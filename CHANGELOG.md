@@ -95,3 +95,15 @@ Note: The return's behaviour is currently too destructive, will be reworked soon
 ### FEATURES
 - Added [planned feature](#planned-features) from V1.0.2
 - Added how to play a song to readme.md's help section
+
+## V1.0.4
+### BUGFIXES
+1. Fixed a bug where playing individual songs would be rejected
+2. Fixed song searcher location display (used to show the wrong number)
+3. Fixed a bunch of areas where uppercase invalid file extensions got past checks
+4. Fixed the 0 return at multiple folders found in folder searcher
+5. Some typo fixing
+
+### FEATURES
+- Added 2/8 eastereggs :3
+- Improved the GB file transfer estimation in bulk copy (now displays less than 1 gb if it gets rounded down to 0)

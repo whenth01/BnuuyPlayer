@@ -195,6 +195,8 @@ class PlaylistAdding():
                         self.data.song_paths[song_path_len] = (name, root, is_stream, self.data.BnuyDJ.audio_funct)
                         combined = root
 
+                    elif choice == 0: continue
+
                     else: raise ValueError
 
                 # if only 1 is found, write immediately
@@ -653,7 +655,7 @@ class PlaylistManagement():
     #### PLAYLIST SETTINGS #### 
     def playlist_settings(self):
         settings = {
-                #### FOLDER METHKDS ####
+                #### FOLDER METHODS ####
                 1: self.BnuyFolders.create_bnuuyfolder,
                 2: self.BnuyFolders.bnuuyfolder_adder,
                 3: self.BnuyFolders.bnuuyfolder_del,
@@ -670,7 +672,7 @@ class PlaylistManagement():
             try:
                 choice = ui.main_settings_menu()
 
-                ####rExtra commands ####
+                #### Extra commands ####
                 if choice == 0: 
                     """Back"""
                     break

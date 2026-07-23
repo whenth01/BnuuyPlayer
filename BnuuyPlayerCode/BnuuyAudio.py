@@ -20,7 +20,7 @@ class BnuuyDJ():
 
                 countr = 0
 
-                res = self.data.lib_print(local_only=False)
+                res = self.data.lib_print()
                 display_keys = res.get("display_keys")
 
                 choice = ui.playlist_main_menu()
@@ -89,7 +89,7 @@ class BnuuyDJ():
                     for song in os.listdir(path):
                         filename, ext = os.path.splitext(song)
 
-                        if ext not in invalid_ext:
+                        if ext.lower() not in invalid_ext:
                             filepath = os.path.join(path, song)
                             countr += 1
                             print(f"{countr}) {filename}")
@@ -161,8 +161,16 @@ class BnuuyDJ():
 
                 if restart: continue
 
-                elif choice == 1: pass 
-                elif liked_handler is False and int(tmp_choice[0]) < 2: pass
+                elif choice == 1: 
+                    """regular route"""
+                    pass 
+                elif liked_handler is False and choice == "1": 
+                    """play stream route"""
+                    pass
+                elif int(tmp_choice[0]) >= 1 and len(tmp_choice) > 1:
+                    """play indiv song route"""
+                    pass
+
                 # automatically moves on, no need for extra logic
 
                 else: raise ValueError 
@@ -180,12 +188,6 @@ class BnuuyDJ():
                     f"--demuxer-max-bytes={self.data.ram_allocated}m",
                     ]
 
-                if len(path) < 1:
-                    print("The file sys folder is empty! Try putting a song in it.")
-                    print("Aborting playback attempt..")
-                    continue
-
-
                 if self.data.video: player.remove("--no-video")
 
                 # f"--input-ipc-server={self.bnuy_path}/.mpv_socket"
@@ -194,8 +196,6 @@ class BnuuyDJ():
                 if self.data.shuffl[0]: player.append("--shuffle")
 
                 if self.data.gapless_toggle: player.append("--gapless-audio=yes")
-
-                ui.term_cleaner()
 
                 return player
 
@@ -220,7 +220,7 @@ class BnuuyDJ():
 
         if which("mpv") is None:
             print("Install MPV to access audio playback!")
-            print("You can install MPV by reading bnuuyplayer's github README.md and folloeing the guide.")
+            print("You can install MPV by reading bnuuyplayer's github README.md and following the guide.")
             return
 
         print("")

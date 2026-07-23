@@ -68,7 +68,7 @@ BnuuyPlayer:                                               |
 BnuyPlayerHist.json                                        |
 BnuyBackup1.json                                           |
 BnuyBackup2.json                                           |
-DO_NOY_DELETE.json                                         |
+DO_NOT_DELETE.json                                         |
 bnuybinds.conf                                             |
                                                            |
 ___________________________________________________________|""")
@@ -165,10 +165,25 @@ def time_print(mode, time):
 
 ####### MAIN MENU #######
 
-def easter_egg_menu():
+def easter_egg_menu(easter_eggs):
     print("""
-___________________________________________________________ 
-▼ Statistics & EasterEggs ▼                                |
+___________________________________________________________
+▼ EasterEggs ▼                                            /\\""")
+
+    for key, (name, hint, info, found) in easter_eggs.items():
+        if found: found = "You found this Easter Egg!:3"
+        else: 
+            found = "Not found yet"
+            info = "Find this Easter Egg to view it's info"
+
+        print(f"""
+{key}) {name} ({found})
+Hint) {hint}
+Info) {info}""")
+
+    print("""
+___________________________________________________________\\/ 
+▼ Statistics ▼                                             |
                                                            |
 1) Amount of time you have been using Bnuuyplayer for      |
 2) Amount of time you have been playing music for.         |
@@ -299,6 +314,10 @@ ___________________________________________________________|""")
 def bulk_copy_confirm(info):
     mb = info.get("mb")
     gb = info.get("gb")
+
+    if int(gb) == 0: gb = "Less than 1 GB"
+    else: gb = int(gb)
+
     playlist = info.get("playlist")
     params = info.get("params")
    
@@ -306,7 +325,7 @@ def bulk_copy_confirm(info):
 __________________________________________________________/\\
 Are you sure? you are copying {len(params)} files (excluding lyric files)
 Copy size in megabytes) {int(mb)}
-Copy size in gigabytes) {int(gb)}
+Copy size in gigabytes) {gb}
 into the playlist) {playlist}
 
 1) Continue                                               \\/
@@ -363,6 +382,7 @@ ___________________________________________________________|""")
 def basic_result_print(info):
     playlist_handler = info.get("playlist_handler")
     entries = info.get("entries")
+    keys = info.get("disp_keys")
     search = info.get("search")
     db = info.get("playlists")
 
@@ -374,14 +394,27 @@ ___________________________________________________________
         if len(search) == 0:
             print("No matches found! :(")
         for num, (path, is_stream, name, og_key, disp_name) in entries.items():
+            found_disp_key = False
+
+            for disp_key, (og_saved_key, is_folder) in keys.items():
+                # this resolves the display key for the user's convenience
+                if is_folder: continue
+
+                if og_key == og_saved_key: 
+                  key = disp_key
+                  found_disp_key = True
+                  break
+
+            if not found_disp_key:
+                  key = "No match found :("
 
             if is_stream and name in search: 
-                print(f"""{og_key}) {disp_name} (Online stream.)
-(located at {num})\n""")
+                print(f"""{num}) {disp_name} (Online stream.)
+(located at {key})\n""")
 
             elif name in search: 
-                print(f"""{og_key}) {disp_name}
-(located at {num})\n""")
+                print(f"""{num}) {disp_name}
+(located at {key})\n""")
 
     else:
         """Song paths printer"""
@@ -391,6 +424,19 @@ ___________________________________________________________
 ▼ Closest song matches ▼                                  /\\\n""")
         for key, names in entries.items():
             playlist_name, _, _, _, = db[key]
+
+            found_disp_key = False
+            for disp_key, (og_key, is_folder) in keys.items():
+                # same basic function as above :3
+                if is_folder: continue
+
+                if key == og_key:
+                    key = disp_key
+                    found_disp_key = True
+                    break
+            if not found_disp_key:
+                key = "No match found :("
+
             for song_name in names:
                 if song_name in search:
                     print(f"""{song_name}
@@ -430,7 +476,7 @@ ___________________________________________________________|""")
     term_cleaner()
     return selection
 
-def advanced_result_print(results, playlists):
+def advanced_result_print(results, playlists, keys):
     print("""
 ___________________________________________________________
 ▼ Closest results ▼                                       /\\""")
@@ -439,6 +485,16 @@ ___________________________________________________________
         data_dict = res[0]
         song_path = res[1]
         location = res[2]
+
+        # thats the default value if nothing is found
+        disp_location = "None found :("
+        for disp_key, (og_key, is_folder) in keys.items():
+            if is_folder: continue
+
+            if location == og_key:
+                disp_location = disp_key
+                break
+
         """metadata collection"""
         artist = data_dict.get("artist")
         title = data_dict.get("title")
@@ -449,7 +505,7 @@ Artist(s): {artist}
 Title: {title}
 Album: {album}
 Playlist name: {playlists[location][0]} 
-Playlist key: {location}""")
+Playlist key: {disp_location}""")
     return
 
 def advanced_result_selection():
