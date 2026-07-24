@@ -198,10 +198,21 @@ l cycle-values loop-file inf no"""
                       "Download a song, and BnuuyPlayer will never give you up ;3", 
                       "Download 'Never gonna give you up' by Rick Astley",
                       False),
+
                 "2": ("28 July 1914",
                       "Take Me Out — Franz Ferdinand",
                       "Download 'Take Me Out' by the band Franz Ferdinand",
-                      False)
+                      False),
+
+                "3": ("I glide across the board so freely, yet I am constrained to one tile color.",
+                      "Chessy?",
+                      "Enter ♝ or ♗ in the EasterEgg menu",
+                      False),
+
+                "4": ("Lonely, I am one of the smallest matters. Together, I can span unimaginable distances. What am I?",
+                      "At a close enough scale, everything i make up is indistinguishable.",
+                      "Enter atom in the EasterEgg menu",
+                      False),
                 }
 
 
@@ -320,19 +331,31 @@ Enter: termux-setup-storage""")
 
 
     ############# XTRA METHODS #############
+    def text_egg_check(self, text):
+        if text.lower() == "♝" or text.lower() == "♗":
+            self.easter_egg_save("3")
+            return True
+
+        elif text.lower() == "atom":
+            self.easter_egg_save("4")
+            return True
+
+        else: 
+            return False
 
     def stats_display(self):
         while True:
             try:
                 
                 choice = ui.easter_egg_menu(self.easter_eggs)
+                if self.text_egg_check(choice): continue
 
                 match choice:
-                    case 0: break
+                    case "0": break
 
-                    case 1: ui.time_print("using", self.time_used)
+                    case "1": ui.time_print("using", self.time_used)
 
-                    case 2: ui.time_print("playing music on", self.time_playing)
+                    case "2": ui.time_print("playing music on", self.time_playing)
 
                     case _: raise ValueError
 
@@ -1106,7 +1129,7 @@ Enter: termux-setup-storage""")
                                     if check < 0.5: 
                                           print(f"{file} did not match.")
                                           continue
-                                    # if its a match > 0.3, it saves the result
+                                    # if its a match > 50%, it saves the result
                                     else: 
                                         results[len(results)+1] = (metadata, full_file, num)
                                         break
@@ -1147,6 +1170,9 @@ Enter: termux-setup-storage""")
     #### LYRIC DOWNLOAD ####
 
     def lrc_dl(self):
+        if not self.mutagen_installed:
+            ui.special_exception("Mutagen isn't installed! please run pip install mutagen, or read bnuuyplayer's README.md for details")
+            return
 
         while True:
             confirm = ui.lrc_dl_confirm()
@@ -1443,7 +1469,6 @@ Enter: termux-setup-storage""")
 
     #### METADATA PRINT AND COLLECTION ####
     def metadata_helper(self, path):
-        count = 0
         metadata = {}
 
         invalid_ext = {".midi", ".mid", ".mod", ".xm", ".s3m", ".wma", ".lrc", ".py"}
@@ -1658,9 +1683,11 @@ Please select the playlist, then what setting you'd like in the same message sep
                     self.video = not self.video
 
                 elif choice == 5:
+                    """Site whitelist add/remove"""
                     self.site_whitelist_handler()
 
                 elif choice == 6:
+                    """Move BnuuyPlayer database"""
                     back = False
 
                     while True:
@@ -1706,6 +1733,9 @@ Please select the playlist, then what setting you'd like in the same message sep
 
                 elif choice == 8:
                     """Metadata settings"""
+                    if not self.mutagen_installed:
+                        ui.special_exception("Mutagen isn't installed! please run pip install mutagen, or read bnuuyplayer's README.md for details")
+                        continue
                     self.metadata_settings()
 
 
@@ -1716,7 +1746,7 @@ Please select the playlist, then what setting you'd like in the same message sep
 
     #### INITIAL SETUP ####
 
-
+    # Startup guide for the user
     def file_setup(self):
 
         if not self.initialized:

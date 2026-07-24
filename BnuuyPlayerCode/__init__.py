@@ -3,6 +3,8 @@ from . import BnuuyFileManager
 from . import BnuuyPlayerCore
 file_manager = BnuuyFileManager
 
+__version__ = "1.0.5"
+
 #### EXCEPT HOOK ####
 def bnuy_except_hook(exctype, value, traceback):
     """Custom messages for exceptions"""
@@ -11,7 +13,6 @@ def bnuy_except_hook(exctype, value, traceback):
     if exctype == KeyboardInterrupt: 
         print("\n\nTurning off.. Thank you for using BnuuyPlayer!")
         try:
-            mode = "return"
             data = BnuuyPlayerCore.bnuuyplayer_state(BnuuyPlayerCore.db_ref, "return pls:3")
             full_data = data["bnuuydb"]
             file_manager.LoadAndRecov.saver(full_data)

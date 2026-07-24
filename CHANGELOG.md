@@ -107,3 +107,16 @@ Note: The return's behaviour is currently too destructive, will be reworked soon
 ### FEATURES
 - Added 2/8 eastereggs :3
 - Improved the GB file transfer estimation in bulk copy (now displays less than 1 gb if it gets rounded down to 0)
+
+## V1.0.5
+### BUGFIXES
+- Fixed an unreachable pathway on error
+- Fixed README links being unreachable
+- Fixed new easter eggs not being shown
+Info: BnuuyPlayer saves the last instance of easter eggs, when updating it'll simply overwrite the new easter eggs with the ones saved. Fixed by just re-attaching the new easter eggs onto the old ones
+- Made lrc_dl and metadata settings check if mutagen is installed before working
+
+### FEATURES
+- +2 easter eggs:3, 4/8 done
+- Added version display to the main menu 
+(NOTE: Versions before 1.0.5 dont have this)

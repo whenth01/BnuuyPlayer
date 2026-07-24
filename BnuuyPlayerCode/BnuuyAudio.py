@@ -84,7 +84,7 @@ class BnuuyDJ():
                 # splits the extension from songname, compares to invalid ext
                 # if it is in invalid ext it skips, otherwise print
                 if liked_handler is False and is_stream is False:
-                    invalid_ext = {".midi", ".mid", ".mod", ".xm", ".s3m", ".wma", ".lrc"}
+                    invalid_ext = {".midi", ".mid", ".mod", ".xm", ".s3m", ".wma", ".lrc", ".py", ".json", ".conf"}
 
                     for song in os.listdir(path):
                         filename, ext = os.path.splitext(song)

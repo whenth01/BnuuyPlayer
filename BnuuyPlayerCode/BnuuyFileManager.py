@@ -187,7 +187,6 @@ class LoadAndRecov():
         """Atomic write to disk"""
         # Writes the tmp handler into the disk, first to hist_path, then backups
         # Ensures corruption cant occur via os.replace and backups
-        # Uses successful saves to make sure all saves were uncorrupted
 
         try:
             with open(tmp_path, "w") as f:
@@ -207,18 +206,17 @@ class LoadAndRecov():
                     backup2.write(backup1.read())
                 successful_saves += 1
 
+        except FileNotFoundError:
+            import sys
+            print("BnuuyPlayer's database is missing! Emergency shutdown..")
+            sys.exit()
+
         except OSError as e:
             import sys
             print(f"Device ERROR during save, BnuuyPlayer is unable to work properly! Error message: \n\n{e}\n")
             print("Do not attempt to re-run BnuuyPlayer until this has been fixed! Your library could get corrupted.")
             print("Exiting for safety..")
             sys.exit()
-
-        except FileNotFoundError:
-            import sys
-            print("BnuuyPlayer's database is missing! Emergency shutdown..")
-            sys.exit()
-
 
     #### CORRUPTED HIST CREATOR ####
 
@@ -400,6 +398,39 @@ class LoadAndRecov():
             # equivalent to e.g: self.song_paths = self.bulk_save.get("0")
             # setattr is required as self.item = ... would create an attribute 
             # named item rather than interacting with the actual items.
+
+            if key == "10" and self.data.bulk_save.get(key) is not None:
+                """Easter Egg Updater"""
+                # Easter eggs in disc overwrite the ones in memory, this patchws that so new easter eggs are shown
+                easter_eggs = self.data.bulk_save[key]
+                # this checks to nake sure it should begin editing
+                if len(self.data.easter_eggs) > len(easter_eggs):
+
+                    for num, _ in self.data.easter_eggs.items():
+                        saved_easter_egg = easter_eggs.get(num)
+                        set_to_true = False
+
+                        if saved_easter_egg is None: pass 
+                        
+                        else:
+                            # this saves the user's progress by setting the found flag back to True
+                            if saved_easter_egg[3] is True: set_to_true = True
+                            # this is so they match, the memory's easter eggs all only have False
+                            saved_easter_egg[3] = False
+
+                        if saved_easter_egg == list(self.data.easter_eggs[num]):
+                            if set_to_true: saved_easter_egg[3] = True
+                            continue
+
+                        easter_eggs[num] = list(self.data.easter_eggs[num])
+                        if set_to_true: 
+                            easter_eggs[num][3] = True
+                            easter_eggs[num] = tuple(easter_eggs[num])
+
+                        else: easter_eggs[num] = tuple(easter_eggs[num])
+
+                    else: self.data.bulk_save[key] = easter_eggs
+
             setattr(self.data, item, self.data.bulk_save.get(key))
 
             # Checks for corrupted or failed keys, compiles to failed_keys

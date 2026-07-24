@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "BnuuyPlayer"
 description = "BnuuyPlayer is a terminal audio player, remaining to have a wide range of features while remaining light:3"
-version = "1.0.4"
+dynamic = ["version"]
 requires-python = ">=3.10"
 readme = "README.md"
 license = "Apache-2.0"
@@ -21,6 +21,9 @@ dependencies = [
 
 [project.scripts]
 bnuy = "BnuuyPlayerCode.BnuuyPlayerCore:start"
+
+[tool.setuptools.dynamic]
+version = {attr = "BnuuyPlayerCode.__version__"}
 
 [tool.setuptools.packages.find]
 include = ["BnuuyPlayerCode"]

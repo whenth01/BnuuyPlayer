@@ -12,7 +12,9 @@ def term_cleaner():
 
 def general_exception(extra_text=""):
     term_cleaner()
-    print(f"Invalid input! :(\n{extra_text}")
+    print(f"Invalid input! :(")
+    if extra_text != "":
+        print(extra_text)
     return
 
 def special_exception(err_text):
@@ -189,7 +191,7 @@ ___________________________________________________________\\/
 2) Amount of time you have been playing music for.         |
 0) Return                                                  |
 ___________________________________________________________|""")
-    choice = intput()
+    choice = strput()
     term_cleaner()
     return choice
 
@@ -1421,6 +1423,9 @@ def print_main(main_methods, no_hint):
 h/H) Extra information, use if you're lost.                |
 t) Toggle this message off/on.                             |
 ___________________________________________________________|""")
+    from . import __version__ as version
+    print(f"""Version) {version}    /
+_________________/""")
 
     choice = strput().lower()
     term_cleaner()

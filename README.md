@@ -3,11 +3,11 @@ bnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuybnuuy
 
 **No AI generated code was used**
 
-**Wanna contribute? View [BnuuyPlayer's documentation](README-Docs.md)**
+**Wanna contribute? View [BnuuyPlayer's documentation](README_Files/README-Docs.md)**
 
-**Wanna view features? View [BnuuyPlayer's featureset](README-Features.md)**
+**Wanna view features? View [BnuuyPlayer's featureset](README_Files/README-Features.md)**
 
-**Wanna see the current roadmap? View [BnuuyPlayer's roadmap](README-RoadMap.md)**
+**Wanna see the current roadmap? View [BnuuyPlayer's roadmap](README_Files/README-RoadMap.md)**
 
 **Want to view the changelog? View [BnuuyPlayer's changelog](CHANGELOG.md)**
 
