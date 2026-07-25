@@ -22,11 +22,12 @@
 
 - [x] Mutagen(optional dependency)
 - [x] Advanced Search
-- [x] Move every song into an existing playlist
-- [x] Copy every song into an existing playlist
-- [x] Delete every song
+- [x] Move every song into an existing playlist (attached to search)
+- [x] Copy every song into an existing playlist (attached to search)
+- [x] Delete every song (attached to search)
+- [x] Play every song (attached to search)
+- [x] Allow browsing of found songs (attached to search)
 - [x] Write new tags
-- [x] Allow browsing of found songs
 - [x] Download lyrics from preexisting songs(if metadata tags are available)
 
 ### BnuuyFolders (internal)
@@ -71,8 +72,7 @@
 - [x] Site whitelist menu
 
 ### EasterEggs
-***This is currently being developed!***
-- [ ] Hints are in settings.
+- [x] Hints are in settings.
 
 ## Nerd Area
 - [x] Full code splitup(into seperate files)
@@ -82,7 +82,7 @@ __main__.py
 BnuuyPlayerCore.py
 BnuuyAudio.py
 BnuuyFolderManager.py
-BnuutPlaylistManager.py
+BnuuyPlaylistManager.py
 BnuuyFileManager.py
 BnuyNumUI.py
 BnuyCurseUI.py # Not made yet!

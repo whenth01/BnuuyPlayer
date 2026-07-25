@@ -120,3 +120,11 @@ Info: BnuuyPlayer saves the last instance of easter eggs, when updating it'll si
 - +2 easter eggs:3, 4/8 done
 - Added version display to the main menu 
 (NOTE: Versions before 1.0.5 dont have this)
+
+## V1.0.6
+### FIXES
+- Fixed some inaccuracies in several READMEs
+
+### FEATURES
+- Made basic search show it's progress like advanced metadata search
+- Finished all easter eggs!:3 Now for the new ui.. :(

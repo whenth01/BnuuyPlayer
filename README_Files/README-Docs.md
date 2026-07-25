@@ -24,7 +24,7 @@ class Example()
 ### Delete from database
 ```python
 # (assuming you transported the core object from BnuuyPlayerCore, in a similar method as shown above)
-self.data.internal_delete(tupl)
+self.data.internal_delete(playlist_key)
 ```
 
 ### How BnuuyPlayer handles JSON and it's database.

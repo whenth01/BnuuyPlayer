@@ -161,11 +161,11 @@ python3 -m BnuuyPlayerCode
   For example,
   album kick back
   That will show you every song from the album kick back by SPARKLEWOLF, and offer you a choice to
-  1. Build a new BnuuyFolder with these songs
-  2. Delete the songs.
-  3. Append the tag into the filename
-  4. Locate these songs
-And more. (viewable in [[README-Features]]' mutagen section.)
+  1. Move all results into a playlist
+  2. Copy all results into a playlist
+  3. Delete all results
+  4. Play all results
+  (viewable in [[README-Features]]' mutagen section.)
     
 #### URL Not working
   BnuuyPlayer only supports direct URLs, a mirror or shortlink will not work. 

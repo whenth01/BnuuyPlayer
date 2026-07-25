@@ -213,6 +213,26 @@ l cycle-values loop-file inf no"""
                       "At a close enough scale, everything i make up is indistinguishable.",
                       "Enter atom in the EasterEgg menu",
                       False),
+
+                "5": ("Come in, Cooper. Do you copy? Forget about Freeman. We're abandoning the base.",
+                      "Half Life is so peak:3",
+                      "Download 'Forget About Freeman'",
+                      False),
+
+                "6": ("meow",
+                      "meow",
+                      "meow",
+                      False),
+
+                "7": ("proto:3",
+                      "beepbeepbeep",
+                      "Enter 'proto' or 'toaster' at the easter egg menu!:3",
+                      False),
+
+                "8": ("Say my name.",
+                      "No more half-measures.",
+                      "Say 'Walter white' at the easter egg menu",
+                      False)
                 }
 
 
@@ -338,6 +358,21 @@ Enter: termux-setup-storage""")
 
         elif text.lower() == "atom":
             self.easter_egg_save("4")
+            return True
+
+        elif text.lower() == ("meow"):
+            ui.kitty()
+            self.easter_egg_save("6")
+            return True
+
+        elif text.lower() == "proto" or text.lower() == "toaster":
+            ui.proto()
+            self.easter_egg_save("7")
+            return True
+
+        elif "walter white" in text.lower() or "walter hartwell white" in text.lower():
+            print("You're goddamn right.")
+            self.easter_egg_save("8")
             return True
 
         else: 
@@ -744,6 +779,7 @@ Enter: termux-setup-storage""")
 
                         entries[len(entries)+1] = path, is_stream, name.lower(), key, disp_name
                         playlists.append(name.lower())
+                        print(f"Checking) {name}..")
                         playlist_handler = True
 
                     elif search_select == "1":
@@ -757,6 +793,7 @@ Enter: termux-setup-storage""")
                                 if split[1].lower() in invalid_ext: continue
                                 # appends a lowercase filename to the list
                                 compiler.append(split[0].lower())
+                                print(f"Checking) {split[0]}..")
 
                             entries[key] = compiler
                             songs += compiler
@@ -1294,6 +1331,9 @@ Enter: termux-setup-storage""")
 
                 elif "take me out" in title.lower() and "franz ferdinand" in artist.lower() or "franz ferdinand" in title.lower():
                     self.easter_egg_save("2")
+
+                elif "forget about freeman" in title.lower():
+                    self.easter_egg_save("5")
             except AttributeError: pass
 
             try:
