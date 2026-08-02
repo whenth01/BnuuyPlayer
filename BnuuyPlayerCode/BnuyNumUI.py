@@ -28,9 +28,7 @@ def bad_folder_names():
 ___________________________________________________________
 Unknown Error. You likely use an invalid character/name.   |
 ___________________________________________________________|
-                                                           |
 Invalid character/name list                                |
-                                                           |
 ___________________________________________________________|
 Windows:                                                   |
 < > : - " / \\ | ? *                                        |
@@ -78,12 +76,14 @@ ___________________________________________________________|""")
 
 #### GENERAL INPUTS ####
 def intput():
-    select = int(input("\n>>> "))
-    return select
+    txt = int(input("\n>>> "))
+    term_cleaner()
+    return txt
 
 def strput():
-    select = input("\n>>> ")
-    return select
+    txt = input("\n>>> ")
+    term_cleaner()
+    return txt
 
 #### KEYBINDING MENU ####
 
@@ -151,10 +151,7 @@ ___________________________________________________________|
 0) Skip/back.                                              |
 ___________________________________________________________|""")
 
-    choice = intput()
-
-    term_cleaner()
-    return choice
+    return intput()
     
 #### TIMER PRINTER ####
 
@@ -191,9 +188,7 @@ ___________________________________________________________\\/
 2) Amount of time you have been playing music for.         |
 0) Return                                                  |
 ___________________________________________________________|""")
-    choice = strput()
-    term_cleaner()
-    return choice
+    return strput()
 
 def kitty():
     print("""
@@ -208,7 +203,7 @@ def kitty():
 ⠀⠀⠀⠀⠀⠀⠀⠀⠛⠛⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀""")
 
 def proto():
-    print(":3 beepboppbeep")
+    print(":3 beepboopbeep")
 
 
 def open_top_bottom_menu():
@@ -219,9 +214,7 @@ ___________________________________________________________\\/
 a) Even more commands                                      |
 0) Return                                                  |
 ___________________________________________________________|""")
-    choice = strput()
-    term_cleaner()
-    return choice.lower()
+    return strput().lower()
 
 ####### MOVE FILE METHOD MENUS #######
 
@@ -233,9 +226,7 @@ Please select the location you'd like to move the song to. |
 0) Return.                                                 |
 ___________________________________________________________|""")
 
-    select = intput()
-    term_cleaner()
-    return select
+    return intput()
     
 def confirm(path, dest_path):
     print(f"""
@@ -249,10 +240,8 @@ ___________________________________________________________\\/
 1) Confirm                                                 |
 0) Return                                                  |
 ___________________________________________________________|""")
-    confirm = intput()
-    term_cleaner()
 
-    return confirm
+    return intput()
 
 
 ####### CMD HANDLER METHOD MENUS #######
@@ -265,10 +254,8 @@ Are you sure? you are deleting) {os.path.basename(os.path.splitext(path)[0])}
 1) Confirm                                                 |
 0) Return                                                  |
 ___________________________________________________________|""")
-    confirm = strput()
-    term_cleaner()
-    return confirm
-    
+    return strput()
+
 def cmd_handler_copy_confirm(path):
     print(f"""
 ___________________________________________________________\\/
@@ -278,9 +265,7 @@ Selected file) {os.path.basename(os.path.splitext(path)[0])}
 0) Return                                                  |
 ___________________________________________________________|""")
 
-    select = intput()
-    term_cleaner()
-    return select
+    return intput()
 
    
 ####### BULK MOVER MENUS #######
@@ -293,9 +278,7 @@ Please select a playlist to move the song(s) into.         |
 0) Return                                                  |
 ___________________________________________________________|""")
 
-    playlist_select = intput()
-    term_cleaner()
-    return playlist_select
+    return intput()
 
 def bulk_move_confirm(params, playlist):
     print(f"""
@@ -308,9 +291,7 @@ into {playlist}
 0) Return                                                  |
 ___________________________________________________________|""")
 
-    confirm = strput()
-    term_cleaner()
-    return confirm
+    return strput()
 
 
 ####### BULK COPY MENUS #######
@@ -323,10 +304,7 @@ Select a playlist to copy the files into.                  |
                                                            |
 0) Return                                                  |
 ___________________________________________________________|""")
-    dest_path = intput()
-
-    term_cleaner()
-    return dest_path
+    return intput()
 
 def bulk_copy_confirm(info):
     mb = info.get("mb")
@@ -348,10 +326,7 @@ into the playlist) {playlist}
 1) Continue                                               \\/
 0) Return                                                  |
 ___________________________________________________________|""")
-    confirm = strput()
-
-    term_cleaner()
-    return confirm
+    return strput()
 
 ####### METADATA BULK DELETE MENUS #######
 
@@ -364,10 +339,7 @@ You are deleting {len(params)} files(excluding lyric files).
 1) Continue                                                |
 0) Return                                                  |
 ___________________________________________________________|""")
-    confirm = intput()
-
-    term_cleaner()
-    return confirm
+    return intput()
 
 ####### BASIC INVESTIBUN #######
 
@@ -379,10 +351,7 @@ Search bnuuyplayer for a song/playlist.                    |
 2) Search for Playlists (note: streamed songs are here)    |
 0) Return                                                  |
 ___________________________________________________________|""")
-    search_select = strput()
-
-    term_cleaner()
-    return search_select
+    return strput()
 
 def investibun_query():
     print("""
@@ -392,9 +361,7 @@ Enter the name of what you'd like to find.                 |
 0) Return                                                  |
 ___________________________________________________________|""")
 
-    query = strput()
-    term_cleaner()
-    return query
+    return strput()
 
 def basic_result_print(info):
     playlist_handler = info.get("playlist_handler")
@@ -489,9 +456,7 @@ ___________________________________________________________|
 0) Return                                                  |
 ___________________________________________________________|""")
 
-    selection = strput()
-    term_cleaner()
-    return selection
+    return strput()
 
 def advanced_result_print(results, playlists, keys):
     print("""
@@ -534,9 +499,7 @@ __________________________________________________________\\/
 4) Play every result                                      |
 0) Return                                                 |
 __________________________________________________________|""")
-    select = strput()
-    term_cleaner()
-    return select
+    return strput()
 
 
 ####### LOCAL LYRIC DOWNLOADER MENUS #######
@@ -550,9 +513,7 @@ Are you sure? this may take a while.                       |
 0) Return                                                  |
 ___________________________________________________________|""")
 
-    confirm = strput()
-    term_cleaner()
-    return confirm
+    return strput()
 
 ####### PLAYLIST PICKER #######
 
@@ -566,9 +527,7 @@ dl) Download lyrics for existing songs(note: this relies on metadata)
 0) back                                                     /
 ___________________________________________________________|""")
 
-    select = strput()
-    term_cleaner()
-    return select
+    return strput()
 
 def song_picker_menu():
     print("""
@@ -587,9 +546,7 @@ ___________________________________________________________|
 (num) p — Play a single song.                              |
 ___________________________________________________________|""")
 
-    select = strput()
-    term_cleaner()
-    return select
+    return strput()
 
 
 ####### CORR BACKUP #######
@@ -639,9 +596,7 @@ ___________________________________________________________|
 
 Please input a path to a folder.""")
 
-    path = strput()
-    term_cleaner()
-    return path
+    return strput()
 
 def path_playlist_name():
     print("""
@@ -652,9 +607,7 @@ ___________________________________________________________
 2) Use the folder name.                                    |
 ___________________________________________________________|""")
 
-    name = strput()
-    term_cleaner()
-    return name
+    return strput()
 
 def path_final_menu():
     print("""
@@ -664,9 +617,9 @@ ___________________________________________________________
 1) Add one more path.                                      |
 0) Return to BnuuyPlayer main menu                         |
 ___________________________________________________________|""")
-    next_thing = strput().lower()
-    term_cleaner()
-    return next_thing
+    # note: idk why this is .lower()ed, id say dont touch it i guess
+    # i forgor
+    return strput().lower()
 
 ## FOLDER MAKER
 
@@ -679,9 +632,7 @@ Continue to let BnuuyPlayer to make a folder.              |
 0) Back                                                    |
 ___________________________________________________________|""")
 
-    confirm = strput()
-    term_cleaner()
-    return confirm
+    return strput()
 
 def new_folder_name():
     print("""
@@ -689,9 +640,7 @@ ___________________________________________________________
 What would you like to name the playlist?                  |
 ___________________________________________________________|""")
 
-    name = strput()
-    term_cleaner()
-    return name
+    return strput()
 
 def success_print(path):
     print(f"""\nSuccessfully created.
@@ -730,9 +679,7 @@ Please enter the folder you'd like to select               |
 0) return                                                  |
 ___________________________________________________________|""")
 
-    name = strput()
-    term_cleaner()
-    return name
+    return strput()
 
 def multi_folder_found():
     print("""
@@ -741,9 +688,7 @@ Which one is correct? If all are, enter "a"                |
                                                            |
 0) Return                                                  |
 ___________________________________________________________|""")
-    select = strput()
-    term_cleaner()
-    return select.lower()
+    return strput().lower()
 
 def folder_success(path):
     print(f"""
@@ -756,9 +701,7 @@ __________________________________________________________\\/
 0) Return to BnuuyPlayer.                                  |
 ___________________________________________________________|""")
 
-    next_thingy = intput()
-    term_cleaner()
-    return next_thingy
+    return intput()
 
 ## YT-DLP ADDER 
 
@@ -772,9 +715,7 @@ ___________________________________________________________
 0) Back                                                    |
 ___________________________________________________________|""")
 
-    choice = intput()
-    term_cleaner()
-    return choice
+    return intput()
 
 def url_input():
     print("""
@@ -787,9 +728,7 @@ ___________________________________________________________|
 0) Back/cancel                                             |
 ___________________________________________________________|""")
 
-    url = strput()
-    term_cleaner()
-    return url
+    return strput()
 
 def print_site_whitelist(valid_domains):
     term_cleaner()
@@ -814,9 +753,7 @@ ___________________________________________________________|
 0) Return.                                                 |
 ___________________________________________________________|""")
 
-    selection = intput()
-    term_cleaner()
-    return selection
+    return intput()
 
 def pick_playlist_dl():
     print("""
@@ -828,9 +765,7 @@ ___________________________________________________________|
 0) Return. (Note: this return's behavior will be redone)   |
 ___________________________________________________________|""")
 
-    playlist = intput()
-    term_cleaner()
-    return playlist
+    return intput()
 
 def pick_new_folder_name():
     print("""
@@ -838,22 +773,18 @@ ___________________________________________________________
 What would you like to name the folder?                    |
 ___________________________________________________________|""")
 
-    name = strput()
-    term_cleaner()
-    return name
+    return strput()
 
 def disp_name_select():
     print("""
 ___________________________________________________________
 Would you like a display name for the folder?              |
-                                                           |
+Enter the name, or select an option below ▼                |
 1) No, continue.                                           |
 0) Return                                                  |
 ___________________________________________________________|""")
 
-    disp_name = strput()
-    term_cleaner()
-    return disp_name
+    return strput()
 
 def file_extension_select():
     print("""
@@ -878,9 +809,7 @@ ___________________________________________________________|
 
 Warning: Do not include a dot when entering the file extension.""")
 
-    ext = strput()
-    term_cleaner()
-    return ext
+    return strput()
 
 # Stream route
 
@@ -894,9 +823,7 @@ ___________________________________________________________|
 0) Return                                                  |
 ___________________________________________________________|""")
 
-    name = strput()
-    term_cleaner()
-    return name
+    return strput()
 
 ####### BNUUYFOLDERS #######
 
@@ -912,9 +839,7 @@ ___________________________________________________________|
 0) Return                                                  |
 ___________________________________________________________|""")
 
-    name = strput()
-    term_cleaner()
-    return name
+    return strput()
 
 def new_bnuuyfolder_made():
     print("""Successfully created BnuuyFolder!\n 
@@ -925,9 +850,7 @@ ___________________________________________________________
 0) Return                                                  |
 ___________________________________________________________|""")
 
-    next_thingy = strput()
-    term_cleaner()
-    return next_thingy
+    return strput()
 
 ### Add to BnuuyFolder
 
@@ -942,9 +865,7 @@ ___________________________________________________________|
 h) Help                                                    |
 ___________________________________________________________|""")
 
-    selection = strput()
-    term_cleaner()
-    return selection
+    return strput()
 
 def bnuuyfolder_add_help_text():
     term_cleaner()
@@ -968,9 +889,7 @@ ___________________________________________________________|
 0) Return.                                                 |
 ___________________________________________________________|""")
 
-    select = strput()
-    term_cleaner()
-    return select
+    return strput()
 
 ### BnuuyFolder delete 
 
@@ -982,9 +901,7 @@ ___________________________________________________________|
 0) Return                                                  |
 ___________________________________________________________|""")
 
-    selected = intput()
-    term_cleaner()
-    return selected
+    return intput()
 
 def delete_bnuuyfolder_confirm(name):
     print(f"""
@@ -997,9 +914,7 @@ ___________________________________________________________|
 0) Return                                                  |
 ___________________________________________________________|""")
 
-    confirm = intput()
-    term_cleaner()
-    return confirm
+    return intput()
 
 ## Delete a playlist 
 def del_select_bnuuyfolder():
@@ -1010,9 +925,7 @@ Please select a folder.                                    |
 0) Return                                                  |
 ___________________________________________________________|""")
 
-    select = intput()
-    term_cleaner()
-    return select
+    return intput()
 
 def del_confirm(playlist, folder):
     print(f"""
@@ -1025,9 +938,7 @@ ___________________________________________________________|
 0) Return                                                  |
 ___________________________________________________________|""")
 
-    confirm = intput()
-    term_cleaner()
-    return confirm
+    return intput()
 
 ## Rename bnuuyfolder
 def bnuuyfolder_rename_select():
@@ -1038,9 +949,7 @@ Please select a folder to rename.                          |
 0) Return                                                  |
 ___________________________________________________________|""")
 
-    select = intput()
-    term_cleaner()
-    return select
+    return intput()
 
 def bnuuyfolder_rename(old_name):
     print(f"""
@@ -1051,9 +960,7 @@ Enter a new name below                                   \\/
 0) Return                                                 |
 __________________________________________________________|""")
 
-    name = strput()
-    term_cleaner()
-    return name
+    return strput()
 
 ####### SITE HANDLING #######
 
@@ -1086,9 +993,7 @@ NOTE: Adding a site requires the site's name, like shown above.
 0) Return                                                  |
 ___________________________________________________________|""")
 
-    select = intput()
-    term_cleaner()
-    return select
+    return intput()
 
 # ADD ROUTE
 def enter_new_site():
@@ -1099,9 +1004,7 @@ Enter the new site name.                                   |
 0) Return                                                  |
 ___________________________________________________________|""")
 
-    site = strput()
-    term_cleaner()
-    return site
+    return strput()
 
 # DEL ROUTE
 
@@ -1113,9 +1016,7 @@ Please select the site you'd like to remove.               |
 0) Return                                                  |
 ___________________________________________________________|""")
 
-    site = strput()
-    term_cleaner()
-    return site
+    return intput()
 
 def del_site_confirm(domains, del_site):
     print(f"""
@@ -1124,9 +1025,7 @@ Are you sure? you are removing {domains[del_site]}
 1) Continue
 0) Return""")
 
-    select = strput()
-    term_cleaner()
-    return select
+    return strput()
 
 
 ####### LIKED SONGS HANDLING#######
@@ -1152,9 +1051,7 @@ Select the song you want to unlike.                        |
 0) Return                                                  |
 ___________________________________________________________|""")
 
-    choice = intput()
-    term_cleaner()
-    return songs, no_songs, choice
+    return songs, no_songs, intput()
 
 ####### REMOVE PLAYLIST #######
 
@@ -1169,9 +1066,7 @@ ___________________________________________________________|
 0) return                                                  |
 ___________________________________________________________|""")
 
-    selection = intput()
-    term_cleaner()
-    return selection
+    return intput()
 
 def confirm_remove(playlist_name):
     print(f"""Are you sure?
@@ -1179,9 +1074,7 @@ You are removing {playlist_name}
 
 1) Confirm
 0) Return""")
-    confirm = intput()
-    term_cleaner()
-    return confirm
+    return intput()
 
 def delete_playlist_selection():
     print("""___________________________________________________________\\/
@@ -1192,9 +1085,7 @@ ___________________________________________________________|
 0) Return                                                  |
 ___________________________________________________________|""")
 
-    selection = intput()
-    term_cleaner()
-    return selection
+    return intput()
 
 def delete_confirm(delname):
     print(f"""
@@ -1206,9 +1097,7 @@ This is permanent.                                         \\/
 0) Return                                                  |
 ___________________________________________________________| """)
 
-    selection = strput()
-    term_cleaner()
-    return selection
+    return strput()
 
 ####### RENAME PLAYLIST #######
 
@@ -1221,9 +1110,7 @@ Which playlist would you like to rename?                   |
 0) Return                                                  |
 ___________________________________________________________|""")
 
-    selection = intput()
-    term_cleaner()
-    return selection
+    return intput()
 
 def playlist_new_name(playlist):
     print(f"""
@@ -1234,9 +1121,7 @@ Please enter a new name.                                   \\/
 0) Return                                                  |
 ___________________________________________________________|""")
 
-    new_name = strput()
-    term_cleaner()
-    return new_name
+    return strput()
 
 ####### METADATA STUFF #######
 
@@ -1255,9 +1140,7 @@ e.g) 3 album                                               _
 0) Return                                                  |
 ___________________________________________________________|""")
 
-    selection = strput()
-    term_cleaner()
-    return selection
+    return strput()
 
 def enter_new_metadata(data_choice, tag, curr_tag):
     print(f"""
@@ -1269,9 +1152,7 @@ Current tag data) {curr_tag}
 0) Return                                                  |
 ___________________________________________________________|""")
 
-    new_data = strput()
-    term_cleaner()
-    return new_data
+    return strput()
 
 ####### SETTINGS #######
 
@@ -1291,9 +1172,7 @@ ___________________________________________________________|
 ___________________________________________________________|
 Input: <playlist num> <setting>""")
 
-    selection = strput()
-    term_cleaner()
-    return selection
+    return strput()
 
 
 ### PLAYLIST SETTINGS
@@ -1321,9 +1200,7 @@ ___________________________________________________________|
 0) Back                                                    |
 ___________________________________________________________|""")
 
-    setting = intput()
-    term_cleaner()
-    return setting
+    return intput()
 
 ### MAIN SETTINGS 
 def main_settings(shuffl, ram, gap_state, video_state):
@@ -1348,9 +1225,7 @@ ___________________________________________________________|
 0) Return.                                                 |
 ___________________________________________________________|""")
 
-    select = intput()
-    term_cleaner()
-    return select 
+    return intput()
 
 def db_location_enter(curr_path):
     print(f"""
@@ -1359,8 +1234,8 @@ Please enter a new path for BnuuyPlayer's database.       /\\
 Current folder the database is in) {os.path.basename(curr_path)}
 Note: Moving may take a while!                            \\/
 ___________________________________________________________|""")
-    path = path_input()
-    return path
+
+    return path_input()
 
 #### MAX RAM SETTING SUB MENU 
 def max_ram(ram_allocated):
@@ -1371,9 +1246,7 @@ Current max) {ram_allocated}mB
 0) Return                                                  \\/
 ___________________________________________________________|""")
 
-    selection = strput()
-    term_cleaner()
-    return selection
+    return strput()
 
 
 ####### FIRST SETUP MENU #######
@@ -1442,9 +1315,7 @@ ___________________________________________________________|""")
     print(f"""Version) {version}    /
 _________________/""")
 
-    choice = strput().lower()
-    term_cleaner()
-    return choice
+    return strput().lower()
 
 def print_help(main_operations):
     print("""

@@ -5,20 +5,13 @@
 
 ### Write to Database
 ```python
-from . import BnuuyFileManager
-
-file_stuff = BnuuyFileManager.LoadAndRecov() # instantiation
-file_stuff.saver()
-```
-Or, to avoid a circular instantiation
-```python
 
 class Example()
     def __init__(self, bnuydata):
         self.data = bnuydata # bnuydata is the self object passed from the core file, which already instantiated everything
  
    def some_method(self)
-       self.data.file_manager.save()
+       self.data.BnuyFileManager.saver()
  
 ```
 ### Delete from database

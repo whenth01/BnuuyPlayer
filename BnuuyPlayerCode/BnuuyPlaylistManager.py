@@ -71,7 +71,7 @@ class PlaylistAdding():
                             continue
 
                     # Save to song paths, write to disk, flip initializer if false
-                    next_key = max(self.data.song_paths, default=0)+1 
+                    next_key = self.data.next_key_resolve()
 
                     self.data.song_paths[next_key] = (playlist_name, path_input, is_stream, self.data.BnuyDJ.audio_funct)
 
@@ -109,7 +109,7 @@ class PlaylistAdding():
                     folder_path = os.path.join(self.data.bnuy_path, folder_name)
                     os.makedirs(folder_path)
 
-                    next_key = max(self.data.song_paths, default=0)+1
+                    next_key = self.data.next_key_resolve()
                     self.data.song_paths[next_key] = (folder_name, folder_path, is_stream, self.data.BnuyDJ.audio_funct)
 
                     self.BnuyFileManager.saver()
@@ -140,7 +140,7 @@ class PlaylistAdding():
         while True:
             is_stream = False
             countr = 0
-            song_path_len = max(self.data.song_paths, default=0)+1
+            song_path_len = self.data.next_key_resolve()
 
             name = ui.main_folder_search(self.data.bnuy_path)
 
@@ -259,7 +259,7 @@ class PlaylistAdding():
 
         while True:
             try:
-                song_path_len = max(self.data.song_paths, default=0)+1
+                song_path_len = self.data.next_key_resolve()
                 choice = ui.stream_or_dl()
 
                 url_inp = ":3"
@@ -399,7 +399,7 @@ class PlaylistAdding():
                             else: name = disp_name
 
                             is_stream = False
-                            next_key = max(self.data.song_paths, default=0)+1
+                            next_key = self.data.next_key_resolve()
                             self.data.song_paths[next_key] = (
                                 f"{name}",
                                 path,

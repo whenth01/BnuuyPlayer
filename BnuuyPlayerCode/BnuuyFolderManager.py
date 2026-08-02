@@ -25,11 +25,6 @@ def bnuuyfolder_check(tupl):
 
 class BnuuyFolder():
     def __init__(self, bnuydata):
-        self.valid_sentinels = {
-           "Folder",
-           "liked_songs",
-       }
-
         self.data = bnuydata
         self.BnuyFileManager = file_io.LoadAndRecov(self.data)
 
@@ -38,7 +33,7 @@ class BnuuyFolder():
     # Creates a default internal folder if they dont exist
     def default_bnuuyfolders(self):
         liked_exists = False
-        next_key = max(self.data.song_paths, default=0)+1
+        next_key = self.data.next_key_resolve()
 
         for num, tupl in self.data.song_paths.items():
             if bnuuyfolder_check(tupl) and tupl[0] == "liked_songs":
@@ -63,7 +58,7 @@ class BnuuyFolder():
                 tmp_list = []
                 tmp_list.append(folder_id)
                 tmp_list.append(folder_name)
-                next_key = max(self.data.song_paths, default=0)+1
+                next_key = self.data.next_key_resolve()
                 self.data.song_paths[next_key] = tmp_list
 
                 while True:

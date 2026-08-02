@@ -10,6 +10,7 @@ class Escape(Exception): pass
 class BnuuyDJ():
     def __init__(self, bnuydata):
         self.data = bnuydata
+        self.search = self.data.BnuySearchManagement
 
     #### PLAYLIST PICKER ####
 
@@ -32,11 +33,11 @@ class BnuuyDJ():
                 if choice == "0": return choice, countr
 
                 elif choice.lower() == "s":
-                    self.data.investibun_search()
+                    self.search.investibun_search()
                     continue
 
                 elif choice.lower() == "as":
-                    self.data.advanced_investibunny()
+                    self.search.advanced_investibunny()
                     continue
 
                 elif choice.lower() == "dl":
@@ -84,7 +85,7 @@ class BnuuyDJ():
                 # splits the extension from songname, compares to invalid ext
                 # if it is in invalid ext it skips, otherwise print
                 if liked_handler is False and is_stream is False:
-                    invalid_ext = {".midi", ".mid", ".mod", ".xm", ".s3m", ".wma", ".lrc", ".py", ".json", ".conf"}
+                    invalid_ext = self.data.invalid_ext_set
 
                     for song in os.listdir(path):
                         filename, ext = os.path.splitext(song)
@@ -176,7 +177,11 @@ class BnuuyDJ():
                 else: raise ValueError 
 
                 if not liked_handler: path = [path]
-                else: path = [*path.values()]
+                else:
+                    if len(path) == 0:
+                        ui.general_exception("No liked songs!:(")
+                        continue
+                    path = [*path.values()]
 
                 player = [
                     "mpv",

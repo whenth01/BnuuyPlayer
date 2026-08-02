@@ -50,10 +50,10 @@
 ## Other
 
 ### UI
-*Both are optional; but the user must pick atleast 1.*
+*Both are optional; but the user must pick atleast 1 once the TUI is made.*
 - [x] Numeric UI
     *Learning curve; but quicker when fully learnt.*
-- [ ] Curses UI 
+- [ ] TUI 
     *Navigable visual TUI, similar to cmus*
 
 ### Data handling and integrity
@@ -61,12 +61,13 @@
 - [x] Auto recovery/rebuild system if main is partially corrupted
 - [x] Data cannot be corrupted by midwrite crashes(os.replace via a tmp file)
 - [x] Invalid/deleted filepaths are auto deleted from the database on startup.
+- [x] Metadata cache, BnuyCache.json is safe to delete. It'll just significantly increase your advanced search times after it's made :(
 
 ### Settings & Stats
 - [x] Persistent shuffle
 - [x] Timed used, time playing stats
 - [x] Toggleable main menu hint
-- [x] Maximum ram usage by MPV(minimum of 1)
+- [x] Maximum ram usage by MPV
 - [x] First run setup guide
 - [x] Toggleable --no-video toggle
 - [x] Site whitelist menu
@@ -79,11 +80,13 @@
 ```
 __init__.py
 __main__.py
-BnuuyPlayerCore.py
 BnuuyAudio.py
+BnuuyPlayerCore.py
+BnuuyFileManager.py
+BnuuySearchManager.py
 BnuuyFolderManager.py
 BnuuyPlaylistManager.py
-BnuuyFileManager.py
+
 BnuyNumUI.py
 BnuyCurseUI.py # Not made yet!
 ```

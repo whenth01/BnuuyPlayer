@@ -370,27 +370,7 @@ class LoadAndRecov():
         "9": "valid_domains",
         "10": "easter_eggs",
         }
-        domain_backup = {"youtube.com",
-                        "youtu.be",
-                        "music.youtube.com",
-                        "soundcloud.com",
-                        "bandcamp.com",
-                        "dai.ly",
-                        "vimeo.com",
-                        "tiktok.com",
-                        "vm.tiktok.com",
-                        "dailymotion.com",
-                        "old.reddit.com",
-                        "v.redd.it",
-                        "reddit.com",
-                        "instagr.am",
-                        "instagram.com",
-                        "fb.watch",
-                        "facebook.com",
-                        "fb.com",
-                        "audiomack.com",
-                        "mixcloud.com"}
-
+        domain_backup = self.data.valid_domains
 
         failed_keys = {}
 
@@ -429,7 +409,7 @@ class LoadAndRecov():
 
                         else: easter_eggs[num] = tuple(easter_eggs[num])
 
-                    else: self.data.bulk_save[key] = easter_eggs
+                    self.data.bulk_save[key] = easter_eggs
 
             setattr(self.data, item, self.data.bulk_save.get(key))
 

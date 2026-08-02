@@ -128,3 +128,17 @@ Info: BnuuyPlayer saves the last instance of easter eggs, when updating it'll si
 ### FEATURES
 - Made basic search show it's progress like advanced metadata search
 - Finished all easter eggs!:3 Now for the new ui.. :(
+
+## V1.0.7
+### DEV NOTE
+- Im abandoning curses TUI temporarily and may re-try in the future. I have too big of a skill issue with curses QwQ
+
+### FEATURES
+1. Code improvements
+2. Added caching for mutagen to increase it's speed (previously, a ~1000 song library on eMMC storage would take 30+ seconds to find a song, with cache that was reduced to ~4 seconds) (BnuuyCache.json)
+3. Added dedicated file for Bnuuy searches (BnuuySearchManager.py)
+4. Failed bulk copies now no longer add to the processed files stat
+5. A few bugfixes
+
+### OTHER
+- Added BnuuyCodeArchive to archive legacy/undeveloped code
