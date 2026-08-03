@@ -663,6 +663,7 @@ Enter: termux-setup-storage""")
                 if success is False:
                     print("Song not found! :( aborting..")
                     return
+
             case "d":
                 """Delete song"""
                 check = os.path.isfile(path)
@@ -909,7 +910,14 @@ Enter: termux-setup-storage""")
 
             try:
                 """lrclib lookup"""
-                lrc_get = requests.get(f"https://lrclib.net/api/get?artist_name={artist}&track_name={title}&album_name={album}&duration={duration}", timeout=10)
+                from urllib.parse import urlencode
+                params = urlencode({"artist_name": artist, 
+                                    "track_name": title,
+                                    "album_name": album,
+                                    "duration": duration,})
+                lrclib_url = "https://lrclib.net/api/get?%s" % params
+
+                lrc_get = requests.get(lrclib_url, timeout=10)
 
             except(requests.exceptions.Timeout):
                 print("\nTimeout!")

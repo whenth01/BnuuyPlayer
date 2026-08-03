@@ -522,6 +522,7 @@ def playlist_main_menu():
 ▼ Extra commands ▼                                         |
                                                            |
 s) Search                                                  |
+r) Remove a playlist from a BnuuyFolder/Liked songs        |
 as) Advanced Search (may be slow)                           \\
 dl) Download lyrics for existing songs(note: this relies on metadata)
 0) back                                                     /
@@ -539,11 +540,12 @@ ___________________________________________________________
 ___________________________________________________________|
 ▼ Extra commands ▼                                         |
                                                            |
-(num) l — Like a song. Gets added to liked songs folder.   |
-(num) d — Delete a song from disk.                         |
-(num) m — Move a song to a new playlist.                   |
-(num) c — Copy a song file to a new playlist.              | 
-(num) p — Play a single song.                              |
+<num> l — Like a song. Gets added to liked songs folder.   |
+<num> ul — Unlike a song, remove it from liked sonte       |
+<num> d — Delete a song from disk.                         |
+<num> m — Move a song to a new playlist.                   |
+<num> c — Copy a song file to a new playlist.              | 
+<num> p — Play a single song.                              |
 ___________________________________________________________|""")
 
     return strput()

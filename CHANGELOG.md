@@ -142,3 +142,11 @@ Info: BnuuyPlayer saves the last instance of easter eggs, when updating it'll si
 
 ### OTHER
 - Added BnuuyCodeArchive to archive legacy/undeveloped code
+
+## V1.0.8
+### BUG FIXES
+- Fixed a bug where some song titles during download wouldnt get lyrics downloaded
+(nerd explanation: I used to construct the url for a lrclib lookup using a simple f-string, i switched it out for urllib.parse.urlencode)
+
+### ADDED FEATURES
+- Added a short cut to unliking/removing from bnuuyfolders to the main library menu

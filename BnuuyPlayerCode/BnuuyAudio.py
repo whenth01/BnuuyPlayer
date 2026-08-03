@@ -44,6 +44,10 @@ class BnuuyDJ():
                     self.data.lrc_dl()
                     continue
 
+                elif choice.lower() == "r":
+                    self.data.BnuyFolder.del_from_bnuuyfolder()
+                    continue
+
                 else: choice = int(choice)
 
                 # defines values that local song picker requires

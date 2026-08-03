@@ -3,7 +3,7 @@ from . import BnuuyFileManager
 from . import BnuuyPlayerCore
 file_manager = BnuuyFileManager
 
-__version__ = "1.0.7"
+__version__ = "1.0.8"
 
 #### EXCEPT HOOK ####
 def bnuy_except_hook(exctype, value, traceback):
