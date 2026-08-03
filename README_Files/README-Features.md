@@ -61,7 +61,7 @@
 - [x] Auto recovery/rebuild system if main is partially corrupted
 - [x] Data cannot be corrupted by midwrite crashes(os.replace via a tmp file)
 - [x] Invalid/deleted filepaths are auto deleted from the database on startup.
-- [x] Metadata cache, BnuyCache.json is safe to delete. It'll just significantly increase your advanced search times after it's made :(
+- [x] Metadata cache, BnuyCache.json is safe to delete. It'll just significantly increase your advanced search times after it's deleted :(
 
 ### Settings & Stats
 - [x] Persistent shuffle
