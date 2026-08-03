@@ -1,6 +1,6 @@
 # ChangeLog
 
-Current release changelog) [V1.0.9](#v1-0-9)
+Current release changelog) [V1.0.9](#v109)
 
 ## V0.2 BETA
 
