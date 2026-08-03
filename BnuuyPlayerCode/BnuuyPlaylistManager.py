@@ -6,9 +6,15 @@ from . import BnuuyFileManager as file_io
 from . import BnuuyFolderManager as folder_management
 
 # This is used in the YT_Dlp method if the user enters a wrong url
-class BadURL(Exception): pass
+
+
+class BadURL(Exception):
+    pass
 # Escape out of loops
-class Escape(Exception): pass
+
+
+class Escape(Exception):
+    pass
 
 
 class PlaylistAdding():
@@ -17,15 +23,15 @@ class PlaylistAdding():
         self.BnuyFileManager = file_io.LoadAndRecov(self.data)
         self.BnuyFolders = self.data.BnuyFolder
 
-
     #### ADD PLAYLIST ####
-    
+
     def add_playlist(self):
         while True:
             try:
                 choice = ui.adder_menu()
 
-                if choice == 0: return # Return to last menu
+                if choice == 0:
+                    return  # Return to last menu
 
                 funct = self.data.adders[choice]()
                 break
@@ -34,8 +40,8 @@ class PlaylistAdding():
                 ui.general_exception()
                 continue
 
-
     #### PLAYLIST/PATH ADDER ####
+
     def path_adder(self):
         is_stream = False
         while True:
@@ -70,10 +76,12 @@ class PlaylistAdding():
                             ui.general_exception()
                             continue
 
-                    # Save to song paths, write to disk, flip initializer if false
+                    # Save to song paths, write to disk, flip initializer if
+                    # false
                     next_key = self.data.next_key_resolve()
 
-                    self.data.song_paths[next_key] = (playlist_name, path_input, is_stream, self.data.BnuyDJ.audio_funct)
+                    self.data.song_paths[next_key] = (
+                        playlist_name, path_input, is_stream, self.data.BnuyDJ.audio_funct)
 
                     self.BnuyFileManager.saver()
                     ui.term_cleaner()
@@ -83,11 +91,14 @@ class PlaylistAdding():
 
                     path_input = ui.path_final_menu()
 
-                if path_input == "0": break
+                if path_input == "0":
+                    break
 
-                elif path_input == "1": continue
+                elif path_input == "1":
+                    continue
 
-                else: raise ValueError
+                else:
+                    raise ValueError
 
             except ValueError:
                 ui.general_exception()
@@ -106,11 +117,13 @@ class PlaylistAdding():
                 if confirm == "1":
                     folder_name = ui.new_folder_name()
 
-                    folder_path = os.path.join(self.data.bnuy_path, folder_name)
+                    folder_path = os.path.join(
+                        self.data.bnuy_path, folder_name)
                     os.makedirs(folder_path)
 
                     next_key = self.data.next_key_resolve()
-                    self.data.song_paths[next_key] = (folder_name, folder_path, is_stream, self.data.BnuyDJ.audio_funct)
+                    self.data.song_paths[next_key] = (
+                        folder_name, folder_path, is_stream, self.data.BnuyDJ.audio_funct)
 
                     self.BnuyFileManager.saver()
                     ui.success_print(folder_path)
@@ -118,9 +131,11 @@ class PlaylistAdding():
                     self.data.initializer()
                     break
 
-                elif confirm == "0": break
+                elif confirm == "0":
+                    break
 
-                else: raise ValueError
+                else:
+                    raise ValueError
 
             except FileExistsError:
                 ui.special_exception("\nFolder or file already exists.")
@@ -157,10 +172,10 @@ class PlaylistAdding():
                         res_len += 1
 
                         combined = os.path.join(root, name)
-                        results[res_len] = (name, combined, is_stream, self.data.BnuyDJ.audio_funct)
+                        results[res_len] = (
+                            name, combined, is_stream, self.data.BnuyDJ.audio_funct)
 
-
-                # If multiple folders are found, print every root and key 
+                # If multiple folders are found, print every root and key
                 # and ask the user for one of them, or all
                 if len(results) > 1:
                     print("\nMultiple folders found!")
@@ -176,28 +191,35 @@ class PlaylistAdding():
                                 ui.general_exception()
                                 continue
 
-                            else: break
+                            else:
+                                break
                         except ValueError:
-                            if choice == "a": break
-                            else: raise ValueError
+                            if choice == "a":
+                                break
+                            else:
+                                raise ValueError
 
                     # writes every found entry into playlists
                     if choice == "a":
                         for key, (name, root, _, _) in results.items():
                             song_path_len += 1
-                            self.data.song_paths[song_path_len] = (name, root, is_stream, self.data.BnuyDJ.audio_funct)
+                            self.data.song_paths[song_path_len] = (
+                                name, root, is_stream, self.data.BnuyDJ.audio_funct)
                             combined = root
 
                     # write chosen one into playlists
-                    elif choice in range(1, len(results)+1):
+                    elif choice in range(1, len(results) + 1):
                         song_path_len += 1
                         name, root, _, _ = results[int(choice)]
-                        self.data.song_paths[song_path_len] = (name, root, is_stream, self.data.BnuyDJ.audio_funct)
+                        self.data.song_paths[song_path_len] = (
+                            name, root, is_stream, self.data.BnuyDJ.audio_funct)
                         combined = root
 
-                    elif choice == 0: continue
+                    elif choice == 0:
+                        continue
 
-                    else: raise ValueError
+                    else:
+                        raise ValueError
 
                 # if only 1 is found, write immediately
                 elif len(results) == 1:
@@ -212,11 +234,14 @@ class PlaylistAdding():
                 self.BnuyFileManager.saver()
                 self.data.initializer()
 
-                if choice == 0: break
-                
-                elif choice == 1: continue
-                
-                else: raise ValueError
+                if choice == 0:
+                    break
+
+                elif choice == 1:
+                    continue
+
+                else:
+                    raise ValueError
 
             except Escape:
                 ui.special_exception("Folder not found.")
@@ -225,7 +250,6 @@ class PlaylistAdding():
             except ValueError:
                 ui.general_exception()
                 continue
-
 
     #### YOUTUBE DOWNLOADER/STREAMER ####
 
@@ -255,7 +279,7 @@ class PlaylistAdding():
                    "nuv",
                    "roq",
                    "ivf",
-                  }
+                   }
 
         while True:
             try:
@@ -273,13 +297,13 @@ class PlaylistAdding():
                             # returns to last menu
                             if url_inp == "0":
                                 break
-                            # filters through to find matching domain 
-                            tmp_url = [url for url in self.data.valid_domains if url in url_inp]
+                            # filters through to find matching domain
+                            tmp_url = [
+                                url for url in self.data.valid_domains if url in url_inp]
 
                             # if no matches found, raise badurl
                             if len(tmp_url) == 0:
                                 raise BadURL
-
 
                             url_valid = requests.get(url_inp, timeout=10)
                             # Checks url's validity
@@ -288,32 +312,37 @@ class PlaylistAdding():
                             """Invalid/wrong URL handler"""
                         except BadURL:
                             ui.print_site_whitelist(self.data.valid_domains)
-                       
+
                             """Internet error"""
                         except requests.exceptions.ConnectionError as e:
-                            ui.special_exception(f"No internet, DNS error or refused connection, full error below. \n\n{e}")
+                            ui.special_exception(
+                                f"No internet, DNS error or refused connection, full error below. \n\n{e}")
                             continue
 
                             """General error"""
-                        except(
+                        except (
                             requests.exceptions.MissingSchema,
                             requests.exceptions.InvalidSchema,
                             requests.exceptions.InvalidURL,
                             requests.exceptions.InvalidHeader,
                         ) as e:
-                            ui.special_exception(f"Invalid URL, or an issue occurred regarding the URL occurred. Full error may be below  \n{e}")
+                            ui.special_exception(
+                                f"Invalid URL, or an issue occurred regarding the URL occurred. Full error may be below  \n{e}")
                             continue
 
                             """Timeout"""
                         except requests.exceptions.Timeout:
-                            ui.special_exception("Timeout error, URL took too long to respond.")
+                            ui.special_exception(
+                                "Timeout error, URL took too long to respond.")
 
                             """HTTPError"""
                         except requests.exceptions.HTTPError as e:
-                            ui.special_exception(f"An unknown error occurred, error message from the server ▼ \n\n{e}")
+                            ui.special_exception(
+                                f"An unknown error occurred, error message from the server ▼ \n\n{e}")
 
-                        # if no error occurs, this runs as the url is likely valid 
-                        # this breaks out of the inner loop to let the code continue
+                        # if no error occurs, this runs as the url is likely valid
+                        # this breaks out of the inner loop to let the code
+                        # continue
                         else:
                             break
 
@@ -324,7 +353,8 @@ class PlaylistAdding():
                         ui.general_exception()
                         continue
 
-                if url_inp == "0": continue
+                if url_inp == "0":
+                    continue
 
                 if choice == 1:
                     dl_location = ui.download_selection()
@@ -335,7 +365,8 @@ class PlaylistAdding():
 
                                 # prints every playlist and writes to tmp_dict
 
-                                print_results = self.data.lib_print(local_only=True)
+                                print_results = self.data.lib_print(
+                                    local_only=True)
 
                                 countr = print_results.get("local_countr")
                                 local_dict = print_results.get("local_dict")
@@ -346,9 +377,11 @@ class PlaylistAdding():
                                     print("\nNo playlists currently available.")
                                 try:
                                     dl_dest = ui.pick_playlist_dl()
-                                    # selects the playlist from tmp via dict unpacking
+                                    # selects the playlist from tmp via dict
+                                    # unpacking
                                     if dl_dest != 0:
-                                        (name, path, _, _) = local_dict[keys[dl_dest][0]]
+                                        (name, path, _,
+                                         _) = local_dict[keys[dl_dest][0]]
                                         break
 
                                     elif dl_dest == 0:
@@ -369,34 +402,39 @@ class PlaylistAdding():
 
                             while True:
                                 folder_name = ui.pick_new_folder_name()
-                                # combines bnuy path and folder name then creates
+                                # combines bnuy path and folder name then
+                                # creates
                                 try:
-                                    path = os.path.join(self.data.bnuy_path, folder_name)
+                                    path = os.path.join(
+                                        self.data.bnuy_path, folder_name)
                                     os.makedirs(path)
                                     break
 
                                 except FileExistsError:
-                                    ui.special_exception("Folder already exists.")
+                                    ui.special_exception(
+                                        "Folder already exists.")
                                     continue
 
                                 except OSError as e:
-                                    ui.special_exception(f"OSError occurred! Error msg: {e}")
+                                    ui.special_exception(
+                                        f"OSError occurred! Error msg: {e}")
                                     continue
 
                             disp_name = ui.disp_name_select()
                             # if user selects 0, use folder name
                             # else use disp name
                             name = None
-                            if disp_name == "1": 
+                            if disp_name == "1":
                                 name = folder_name
 
-                            elif disp_name == "0": 
+                            elif disp_name == "0":
                                 try:
                                     os.rmdir(path)
                                 except (FileNotFoundError, PermissionError, OSError):
-                                    pass 
+                                    pass
                                 continue
-                            else: name = disp_name
+                            else:
+                                name = disp_name
 
                             is_stream = False
                             next_key = self.data.next_key_resolve()
@@ -405,7 +443,7 @@ class PlaylistAdding():
                                 path,
                                 is_stream,
                                 self.data.BnuyDJ.audio_funct,
-                             )
+                            )
 
                         # return to last menu
                         case 0:
@@ -417,25 +455,24 @@ class PlaylistAdding():
                     while True:
                         ext = ui.file_extension_select()
 
-
                         yt_opts = {
-                                "outtmpl": f"{path}/%(title)s.%(ext)s",
-                                "format": "bestaudio/best",
-                                "progress_hooks": [self.data.yt_hook],
-                                "ignoreerrors": "only_download",
-                                "no_warnings": True,
-                                "postprocessors": [{
-                                    "key":"FFmpegMetadata", "add_metadata": True,
-                                    }]
-                                }
+                            "outtmpl": f"{path}/%(title)s.%(ext)s",
+                            "format": "bestaudio/best",
+                            "progress_hooks": [self.data.yt_hook],
+                            "ignoreerrors": "only_download",
+                            "no_warnings": True,
+                            "postprocessors": [{
+                                "key": "FFmpegMetadata", "add_metadata": True,
+                            }]
+                        }
                         yt_processor = {
                             "postprocessors": [{
                                 "key": "FFmpegExtractAudio",
-                                "preferredcodec": ext,},
+                                "preferredcodec": ext, },
                                 {
-                                "key":"FFmpegMetadata", "add_metadata": True,
-                                }],
-                            }
+                                "key": "FFmpegMetadata", "add_metadata": True,
+                            }],
+                        }
 
                         if "." in ext:
                             print("Invalid ext, do not include a dot!")
@@ -444,8 +481,10 @@ class PlaylistAdding():
                         # deletes file sys folder to prevent orphaned folders
                         elif ext == "0":
                             if dl_location == 2:
-                                try: os.rmdir(path)
-                                except OSError: pass
+                                try:
+                                    os.rmdir(path)
+                                except OSError:
+                                    pass
                                 del self.data.song_paths[next_key]
 
                             break
@@ -465,10 +504,12 @@ class PlaylistAdding():
 
                         except (yt_dlp.utils.DownloadError, yt_dlp.utils.PostProcessingError) as e:
                             if "unsupported" in str(e).lower():
-                                print("Unsupported URL, or a invalid URL was inputted.")
+                                print(
+                                    "Unsupported URL, or a invalid URL was inputted.")
                             else:
                                 print(
-                                f"Download failed, error message; {repr(e)}\n\nPlease report the error to the github page if its not a connection error."
+                                    f"Download failed, error message; {
+                                        repr(e)}\n\nPlease report the error to the github page if its not a connection error."
                                 )
                             continue
 
@@ -483,12 +524,13 @@ class PlaylistAdding():
                 # stream path
                 elif choice == 2:
 
-                    if url_inp == "0": break
-
+                    if url_inp == "0":
+                        break
 
                     name_choice = ui.streamed_playlist_name()
 
-                    if name_choice == "0": break
+                    if name_choice == "0":
+                        break
 
                     is_stream = True
 
@@ -504,16 +546,15 @@ class PlaylistAdding():
                     print("Successfully added!")
                     self.data.initializer()
 
-                elif choice == 0: break
+                elif choice == 0:
+                    break
 
-                else: raise ValueError
+                else:
+                    raise ValueError
 
             except (ValueError, KeyError):
                 ui.general_exception()
                 continue
-
-
-
 
 
 class PlaylistManagement():
@@ -537,7 +578,8 @@ class PlaylistManagement():
 
                 del_choice = ui.delete_playlist_selection()
 
-                if del_choice == 0: return
+                if del_choice == 0:
+                    return
 
                 """Delete processer"""
                 # find the path, remember name for later
@@ -545,7 +587,7 @@ class PlaylistManagement():
                 while True:
                     final_confirm = ui.delete_confirm(delname)
 
-                    if final_confirm == "0": 
+                    if final_confirm == "0":
                         print("Canceled.")
                         break
 
@@ -555,9 +597,9 @@ class PlaylistManagement():
                         try:
                             rmtree(path)
                         except (OSError, PermissionError) as e:
-                            ui.special_exception(f"An error occurred while deleting!) {e}")
+                            ui.special_exception(
+                                f"An error occurred while deleting!) {e}")
                             continue
-                            
 
                         """Library updater"""
                         # Reindexes and deletes selected playlist
@@ -587,21 +629,25 @@ class PlaylistManagement():
 
                 del_choice = ui.remove_playlist()
 
-                if del_choice == 0: return
+                if del_choice == 0:
+                    return
 
                 else:
                     playlist = self.data.song_paths[keys[del_choice][0]]
 
                     if folder_management.bnuuyfolder_check(playlist):
-                        ui.special_exception("Can not delete folders here, please select a playlist!")
+                        ui.special_exception(
+                            "Can not delete folders here, please select a playlist!")
                         continue
 
                     confirm = ui.confirm_remove(playlist[0])
 
                     if confirm == 1:
                         self.data.internal_delete(keys[del_choice][0])
-                    elif confirm == 0: continue
-                    else: raise ValueError
+                    elif confirm == 0:
+                        continue
+                    else:
+                        raise ValueError
 
                     print("Successfully removed!")
                     continue
@@ -609,7 +655,7 @@ class PlaylistManagement():
             except (ValueError, KeyError):
                 ui.general_exception()
                 continue
-    
+
         #### EDIT PLAYLIST NAME ####
 
     def edit_playlist_name(self):
@@ -621,9 +667,10 @@ class PlaylistManagement():
                 keys = results.get("display_keys")
 
                 rename_choice = ui.playlist_rename_select()
-                if rename_choice == 0: return
+                if rename_choice == 0:
+                    return
 
-                if countr > 0 and rename_choice in range(1,len(keys)+1):
+                if countr > 0 and rename_choice in range(1, len(keys) + 1):
                     selected_key = keys[rename_choice][0]
 
                     playlist = self.data.song_paths[selected_key]
@@ -634,7 +681,8 @@ class PlaylistManagement():
 
                     new_name = ui.playlist_new_name(playlist[0])
 
-                    if new_name == "0": continue 
+                    if new_name == "0":
+                        continue
 
                     playlist = list(playlist)
                     playlist[0] = new_name
@@ -644,44 +692,45 @@ class PlaylistManagement():
                     print("Successfully renamed. :3")
                     continue
 
-                else: raise ValueError
-                                    
+                else:
+                    raise ValueError
 
             except ValueError:
                 ui.general_exception()
                 continue
 
+    #### PLAYLIST SETTINGS ####
 
-    #### PLAYLIST SETTINGS #### 
     def playlist_settings(self):
         settings = {
-                #### FOLDER METHODS ####
-                1: self.BnuyFolders.create_bnuuyfolder,
-                2: self.BnuyFolders.bnuuyfolder_adder,
-                3: self.BnuyFolders.bnuuyfolder_del,
-                4: self.BnuyFolders.del_from_bnuuyfolder,
-                5: self.BnuyFolders.rename_bnuuyfolder,
+            #### FOLDER METHODS ####
+            1: self.BnuyFolders.create_bnuuyfolder,
+            2: self.BnuyFolders.bnuuyfolder_adder,
+            3: self.BnuyFolders.bnuuyfolder_del,
+            4: self.BnuyFolders.del_from_bnuuyfolder,
+            5: self.BnuyFolders.rename_bnuuyfolder,
 
-                #### PLAYLIST METHODS ####
-                6: self.del_playlist,
-                7: self.del_playlist_from_disk,
-                8: self.adders.add_playlist,
-                9: self.edit_playlist_name,
-                }
+            #### PLAYLIST METHODS ####
+            6: self.del_playlist,
+            7: self.del_playlist_from_disk,
+            8: self.adders.add_playlist,
+            9: self.edit_playlist_name,
+        }
         while True:
             try:
                 choice = ui.main_settings_menu()
 
                 #### Extra commands ####
-                if choice == 0: 
+                if choice == 0:
                     """Back"""
                     break
 
-                elif choice in range(1, len(settings)+1):
+                elif choice in range(1, len(settings) + 1):
                     settings[choice]()
                     continue
 
-                else: raise ValueError 
+                else:
+                    raise ValueError
 
             except (ValueError, KeyError):
                 ui.general_exception()

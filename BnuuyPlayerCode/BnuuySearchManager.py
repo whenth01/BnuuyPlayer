@@ -6,8 +6,11 @@ import subprocess
 from . import BnuyNumUI as ui
 from . import BnuuyFolderManager as bnuyfolder
 
-try: import mutagen
-except (ImportError, ModuleNotFoundError): pass
+try:
+    import mutagen
+except (ImportError, ModuleNotFoundError):
+    pass
+
 
 class BnuuySearcher:
     def __init__(self, bnuydata):
@@ -27,8 +30,8 @@ class BnuuySearcher:
         for file in os.listdir(path):
             abs_path = os.path.join(path, file)
 
-            key = max(metadata, default=0)+1
-            if os.path.isdir(abs_path): 
+            key = max(metadata, default=0) + 1
+            if os.path.isdir(abs_path):
                 continue
             elif os.path.splitext(os.path.basename(file))[1].lower() in invalid_ext:
                 continue
@@ -41,8 +44,10 @@ class BnuuySearcher:
                 print(f"{file} failed to read!:(")
                 print(e)
                 continue
-            if data is None: continue
-            else: metadata[key] = data
+            if data is None:
+                continue
+            else:
+                metadata[key] = data
             print(f"{key}) {os.path.basename(file)}")
 
         print("\nNote: if a song is missing, the file format is likely unsupported.")
@@ -53,18 +58,23 @@ class BnuuySearcher:
 
     def investibun_search(self):
         invalid_ext = self.data.invalid_ext_set
-        lib_dict = self.data.lib_print(local_only=False, folder_only=False, suppress_print=True)
+        lib_dict = self.data.lib_print(
+            local_only=False,
+            folder_only=False,
+            suppress_print=True)
         keys = lib_dict.get("display_keys")
         while True:
             try:
 
                 search_select = ui.investibun_main()
 
-                if search_select == "0": return
+                if search_select == "0":
+                    return
 
                 search_query = ui.investibun_query()
-                
-                if search_query == "0": return
+
+                if search_query == "0":
+                    return
 
                 entries = {}
                 songs = []
@@ -73,15 +83,17 @@ class BnuuySearcher:
                 playlist_handler = False
 
                 for key, tupl in self.data.song_paths.items():
-                    if bnuyfolder.bnuuyfolder_check(tupl): continue
+                    if bnuyfolder.bnuuyfolder_check(tupl):
+                        continue
 
                     name, path, is_stream, _ = tupl
 
-                    if search_select == "2": 
+                    if search_select == "2":
                         """Playlist route"""
                         disp_name = name
 
-                        entries[len(entries)+1] = path, is_stream, name.lower(), key, disp_name
+                        entries[len(entries) +
+                                1] = path, is_stream, name.lower(), key, disp_name
                         playlists.append(name.lower())
                         print(f"Checking) {name}..")
                         playlist_handler = True
@@ -94,7 +106,8 @@ class BnuuySearcher:
                             for filename in os.listdir(path):
                                 split = os.path.splitext(filename)
                                 # filters out unwanted files
-                                if split[1].lower() in invalid_ext: continue
+                                if split[1].lower() in invalid_ext:
+                                    continue
                                 # appends a lowercase filename to the list
                                 compiler.append(split[0].lower())
                                 print(f"Checking) {split[0]}..")
@@ -103,7 +116,8 @@ class BnuuySearcher:
                             songs += compiler
                             song_handler = True
 
-                        else: continue
+                        else:
+                            continue
 
                     else:
                         ui.general_exception()
@@ -112,9 +126,16 @@ class BnuuySearcher:
                 else:
 
                     if song_handler:
-                        search = set(difflib.get_close_matches(search_query.lower(), songs, n=3, cutoff=0.5))
+                        search = set(
+                            difflib.get_close_matches(
+                                search_query.lower(), songs, n=3, cutoff=0.5))
                     else:
-                        search = set(difflib.get_close_matches(search_query.lower(), playlists, n=3, cutoff=0.5))
+                        search = set(
+                            difflib.get_close_matches(
+                                search_query.lower(),
+                                playlists,
+                                n=3,
+                                cutoff=0.5))
 
                     info = {
                         "search": search,
@@ -129,7 +150,7 @@ class BnuuySearcher:
             except ValueError:
                 ui.general_exception()
                 continue
-    
+
     #### BULK HELPER'S FILE OPERATION ####
     def bulk_helper_helper(self, mode, path, dest_path, files):
         handled = False
@@ -137,20 +158,22 @@ class BnuuySearcher:
         if mode == "move":
             shutil.move(path, dest_path)
             handled = True
-            msg = f"{os.path.basename(path)} was moved to {os.path.basename(dest_path)}"
+            msg = f"{
+                os.path.basename(path)} was moved to {
+                os.path.basename(dest_path)}"
 
         elif mode == "copy" and os.path.basename(path) not in files:
             shutil.copy(path, dest_path)
             handled = True
-            msg = f"{os.path.basename(path)} was copied to {os.path.basename(dest_path)}"
-
+            msg = f"{
+                os.path.basename(path)} was copied to {
+                os.path.basename(dest_path)}"
 
         elif mode == "delete":
             os.remove(path)
             handled = True
             msg = f"{os.path.basename(path)} was deleted."
 
-                
         elif mode == "play":
             player = [
                 "mpv",
@@ -160,14 +183,13 @@ class BnuuySearcher:
                 "--no-video",
                 "--cache",
                 f"--demuxer-max-bytes={self.data.ram_allocated}m",
-                ]
+            ]
             try:
                 subprocess.run(player, check=True)
             except subprocess.CalledProcessError as e:
                 print(f"An error occurred!")
                 print(e)
         return msg, handled
-
 
     #### METADATA COMPILER & BACKEND ####
 
@@ -177,13 +199,17 @@ class BnuuySearcher:
 
         for num, (metadata, path, key) in params.items():
             if not os.path.isdir(dest_path):
-                ui.special_exception("Destination path was deleted, please select a new playlist!")
+                ui.special_exception(
+                    "Destination path was deleted, please select a new playlist!")
                 break
 
-            # This is a blacklist of files to prevent copy from overwriting same name files
-            if mode == "copy": files = set(os.listdir(dest_path))
+            # This is a blacklist of files to prevent copy from overwriting
+            # same name files
+            if mode == "copy":
+                files = set(os.listdir(dest_path))
             # moving doesnt need it as it raises an error
-            else: files = {}
+            else:
+                files = {}
 
             lrc_file = f"{os.path.basename(os.path.splitext(path)[0])}.lrc"
             lrc_path = os.path.join(os.path.dirname(path), lrc_file)
@@ -194,35 +220,41 @@ class BnuuySearcher:
                 continue
 
             try:
-                msg, handled = self.bulk_helper_helper(mode, path, dest_path, files)
-                if mode == "play": continue
+                msg, handled = self.bulk_helper_helper(
+                    mode, path, dest_path, files)
+                if mode == "play":
+                    continue
                 if handled:
                     print(msg)
                     processed_files += 1
                     moved_song = True
                 else:
-                    print(f"{os.path.basename(path)} failed to be copied due to another file with the same filename existing in the chosen playlist!")
+                    print(
+                        f"{os.path.basename(path)} failed to be copied due to another file with the same filename existing in the chosen playlist!")
                     moved_song = False
 
-            except(shutil.Error, PermissionError, FileNotFoundError, OSError) as e:
+            except (shutil.Error, PermissionError, FileNotFoundError, OSError) as e:
                 print("An error occurred while handling the song file!")
                 print(e)
                 print("Skipping song..")
                 continue
-            
+
             if os.path.isfile(lrc_path) and moved_song:
                 try:
-                    if mode == "play": continue
-                    msg, handled = self.bulk_helper_helper(mode, lrc_path, dest_path, files)
+                    if mode == "play":
+                        continue
+                    msg, handled = self.bulk_helper_helper(
+                        mode, lrc_path, dest_path, files)
 
                     if handled:
                         print(msg)
                         processed_files += 1
                     else:
                         # only copy route failing doesnt raise an exception
-                        print(f"{lrc_file} failed to be copied due to another file with the same filename existing in the chosen playlist!")
+                        print(
+                            f"{lrc_file} failed to be copied due to another file with the same filename existing in the chosen playlist!")
 
-                except(shutil.Error, PermissionError, FileNotFoundError, OSError) as e:
+                except (shutil.Error, PermissionError, FileNotFoundError, OSError) as e:
                     print("An error occurred while handling the lyric file!")
                     print(e)
                     print("Skipping lyric file..")
@@ -231,8 +263,8 @@ class BnuuySearcher:
         print("Finished handling the files!:3")
         return processed_files
 
-
     #### MULTIPLE FILE MOVER ####
+
     def bulk_mover(self, params):
         while True:
             try:
@@ -241,7 +273,7 @@ class BnuuySearcher:
 
                 if selection == 0:
                     return
-                
+
                 keys = res.get("display_keys")
                 selected_playlist = self.data.song_paths[keys[selection][0]]
 
@@ -250,17 +282,21 @@ class BnuuySearcher:
                     print("Can not select a folder, please select a playlist.")
                     continue
                 # Stream check
-                elif selected_playlist[2]: raise ValueError
+                elif selected_playlist[2]:
+                    raise ValueError
 
                 dest_path = selected_playlist[1]
 
                 while True:
-                    confirm = ui.bulk_move_confirm(params, selected_playlist[0])
+                    confirm = ui.bulk_move_confirm(
+                        params, selected_playlist[0])
 
-                    if confirm == "0": break
+                    if confirm == "0":
+                        break
 
                     elif confirm == "1":
-                        amount_moved = self.bulk_helper(params, "move", dest_path)
+                        amount_moved = self.bulk_helper(
+                            params, "move", dest_path)
 
                         print(f"Moved {amount_moved} files!:3")
                         return
@@ -270,14 +306,14 @@ class BnuuySearcher:
                         continue
 
             except (ValueError, KeyError, IndexError):
-                ui.special_exception("Please select a playlist, not a folder or streamed entry.")
+                ui.special_exception(
+                    "Please select a playlist, not a folder or streamed entry.")
                 continue
-
 
     #### MULTIPLE FILE COPY ####
 
     def bulk_copy(self, params):
-        copy_size_bytes = 0 
+        copy_size_bytes = 0
         for _, (_, path, _,) in params.items():
             if os.path.isfile(path):
                 copy_size_bytes += os.path.getsize(path)
@@ -301,11 +337,13 @@ class BnuuySearcher:
                 # folder check
                 # keys hold a is folder value at index 1
                 if keys[dest_select][1]:
-                    ui.special_exception("Cannot select a folder :(, please select a playlist!")
+                    ui.special_exception(
+                        "Cannot select a folder :(, please select a playlist!")
                     continue
 
                 # stream check
-                elif selected_playlist[2]: raise ValueError
+                elif selected_playlist[2]:
+                    raise ValueError
 
                 confirm_loop = True
                 while confirm_loop:
@@ -318,7 +356,8 @@ class BnuuySearcher:
 
                     confirm = ui.bulk_copy_confirm(info)
 
-                    if confirm == "1": pass
+                    if confirm == "1":
+                        pass
 
                     elif confirm == "0":
                         confirm_loop = False
@@ -328,14 +367,12 @@ class BnuuySearcher:
                         print("Invalid input, pick 1 or 0.")
                         continue
 
-                
                     name, dest_path, _, _, = selected_playlist
 
                     amount_copied = self.bulk_helper(params, "copy", dest_path)
 
                     print(f"Copied {amount_copied} files!:3")
                     return
-
 
             except (ValueError, KeyError, IndexError):
                 ui.general_exception("Please select a playlist")
@@ -348,17 +385,18 @@ class BnuuySearcher:
             try:
                 confirm = ui.bulk_del_confirm(params)
 
-
                 if confirm == 1:
                     # spoofing the dest path to make it fit in
-                    amount_deleted = self.bulk_helper(params, "delete", self.data.bnuy_path)
+                    amount_deleted = self.bulk_helper(
+                        params, "delete", self.data.bnuy_path)
                     print(f"Deleted {amount_deleted} files.")
-                    return 
+                    return
 
                 elif confirm == 0:
                     return
 
-                else: raise ValueError
+                else:
+                    raise ValueError
 
             except ValueError:
                 ui.general_exception("Select 0 or 1.")
@@ -378,7 +416,8 @@ class BnuuySearcher:
         except (FileNotFoundError, json.JSONDecodeError):
             cached_metadata = "no data"
 
-        if cached_metadata == "no data": return None
+        if cached_metadata == "no data":
+            return None
 
         self.cache_verifier(cached_metadata)
         return cached_metadata
@@ -390,7 +429,8 @@ class BnuuySearcher:
             with open(self.cache_path, "w") as f:
                 json.dump(cached_metadata, f, indent=2)
         except OSError:
-            print("An error occurred while trying to save to cache. The next search may take longer!")
+            print(
+                "An error occurred while trying to save to cache. The next search may take longer!")
 
     #### VERIFY CACHE INTEGRITY ####
 
@@ -411,10 +451,10 @@ class BnuuySearcher:
             return
 
         bulk_methods = {
-        "1": self.bulk_mover,
-        "2": self.bulk_copy,
-        "3": self.bulk_delete,
-        "4": self.metadata_player
+            "1": self.bulk_mover,
+            "2": self.bulk_copy,
+            "3": self.bulk_delete,
+            "4": self.metadata_player
         }
 
         # Generally unsupported extensions
@@ -427,7 +467,7 @@ class BnuuySearcher:
             "title": "title",
             "album": "album",
             "genre": "genre",
-            }
+        }
 
         while True:
             try:
@@ -436,78 +476,91 @@ class BnuuySearcher:
                 if cached_metadata is None:
                     use_cache = False
                     cached_metadata = {}
-                else: use_cache = True
-
+                else:
+                    use_cache = True
 
                 selection = ui.advanced_select_query()
 
                 values = selection.split()
-                if values[0] == "0": return
+                if values[0] == "0":
+                    return
 
-                elif len(values) < 2: raise ValueError
+                elif len(values) < 2:
+                    raise ValueError
 
                 else:
                     tag = tags.get(values[0])
 
-                    if tag is None: raise ValueError
+                    if tag is None:
+                        raise ValueError
 
-                    # reconstructs the string 
+                    # reconstructs the string
                     # 0 is the tag (as seen above)
                     query = " ".join(values[1:])
                     results = {}
-                    # this starts by searching playlists in self.data.song_paths 
+                    # this starts by searching playlists in self.data.song_paths
                     # for their metadata
                     for num, tupl in self.data.song_paths.items():
-                        if bnuyfolder.bnuuyfolder_check(tupl): continue
-                        
+                        if bnuyfolder.bnuuyfolder_check(tupl):
+                            continue
+
                         name, path, is_stream, _ = tupl
-                        
+
                         if not is_stream:
                             # then begins looking through local songs..
                             if not os.path.isdir(path):
-                                print(f"Encountered an invalid playlist) {name}\nIgnoring...")
+                                print(
+                                    f"Encountered an invalid playlist) {name}\nIgnoring...")
                                 continue
                             for file in os.listdir(path):
                                 # filters invalid songs and files
-                                if os.path.splitext(file)[1].lower() in invalid_ext: 
+                                if os.path.splitext(
+                                        file)[1].lower() in invalid_ext:
                                     continue
                                 full_file = os.path.join(path, file)
                                 # collects the metadata
                                 mod_time = os.path.getmtime(full_file)
 
                                 if use_cache:
-                                    file_data = cached_metadata.get(f"{full_file}")
+                                    file_data = cached_metadata.get(
+                                        f"{full_file}")
                                     try:
                                         if file_data is None:
                                             got_cached_data = False
 
                                         elif int(mod_time) == int(file_data.get("mtime")):
-                                            metadata = file_data.get("metadata")
+                                            metadata = file_data.get(
+                                                "metadata")
                                             got_cached_data = True
 
-                                        else: got_cached_data = False
+                                        else:
+                                            got_cached_data = False
                                     except TypeError:
                                         del cached_metadata[full_file]
                                         got_cached_data = False
 
-                                else: got_cached_data = False
+                                else:
+                                    got_cached_data = False
 
                                 try:
                                     if got_cached_data is False:
-                                        metadata = mutagen.File(full_file, easy=True)
+                                        metadata = mutagen.File(
+                                            full_file, easy=True)
 
-                                        # this is done because mutagen objects arent JSON serializable :(
+                                        # this is done because mutagen objects
+                                        # arent JSON serializable :(
                                         stuff = {}
                                         if metadata is not None:
                                             for tag_name, data in metadata.items():
                                                 stuff[tag_name] = data
 
                                         cached_metadata[full_file] = {
-                                                "mtime": mod_time,
-                                                "metadata": stuff,
-                                                }
+                                            "mtime": mod_time,
+                                            "metadata": stuff,
+                                        }
 
-                                        if os.path.splitext(file)[1].lower() in unsupported_ext:
+                                        if os.path.splitext(
+                                                file)[1].lower() in unsupported_ext:
                                             print(f"{file} is unsupported.")
                                             continue
 
@@ -525,18 +578,21 @@ class BnuuySearcher:
                                 value = metadata.get(tag)
 
                                 if value is None:
-                                    print(f"{file} did not have {tag} in its metadata :(")
+                                    print(
+                                        f"{file} did not have {tag} in its metadata :(")
                                     continue
 
                                 for data in value:
                                     # fuzzy search through the results
-                                    check = difflib.SequenceMatcher(None, data.lower(), query.lower()).ratio()
-                                    if check < 0.5: 
-                                          print(f"{file} did not match.")
-                                          continue
+                                    check = difflib.SequenceMatcher(
+                                        None, data.lower(), query.lower()).ratio()
+                                    if check < 0.5:
+                                        print(f"{file} did not match.")
+                                        continue
                                     # if its a match > 50%, it saves the result
-                                    else: 
-                                        results[len(results)+1] = (metadata, full_file, num)
+                                    else:
+                                        results[len(
+                                            results) + 1] = (metadata, full_file, num)
                                         break
 
                     self.metadata_cache_saver(cached_metadata)
@@ -547,26 +603,31 @@ class BnuuySearcher:
 
                         else:
 
-                            data = self.data.lib_print(local_only=False, folder_only=False, suppress_print=True)
+                            data = self.data.lib_print(
+                                local_only=False, folder_only=False, suppress_print=True)
                             keys = data.get("display_keys")
 
-                            ui.advanced_result_print(results, self.data.song_paths, keys)
+                            ui.advanced_result_print(
+                                results, self.data.song_paths, keys)
                             choice = ui.advanced_result_selection()
 
                             funct = bulk_methods.get(choice)
-                            if choice == "0": break
+                            if choice == "0":
+                                break
 
-                            elif funct is None: 
-                                ui.general_exception("Select a number between 0-4")
+                            elif funct is None:
+                                ui.general_exception(
+                                    "Select a number between 0-4")
                                 continue
 
-                            else: 
+                            else:
                                 ui.term_cleaner()
                                 funct(results)
                                 break
 
             except ValueError:
-                ui.general_exception("Read BnuuyPlayer's README.md help section.")
+                ui.general_exception(
+                    "Read BnuuyPlayer's README.md help section.")
                 continue
 
             except IndexError:

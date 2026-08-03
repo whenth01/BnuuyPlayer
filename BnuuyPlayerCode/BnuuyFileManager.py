@@ -9,8 +9,10 @@ from . import BnuuyFolderManager as folder_manager
 # NewStart creates the necessary bnuuyplayer jsons when called as(comment below)
 # try: raise NewStart
 # except NewStart as e: e.create_hist()
+
+
 class NewStart(Exception):
-    def __init__(self, path,data):
+    def __init__(self, path, data):
         super().__init__(path)
         self.path = path
         self.hist_path = os.path.join(path, "BnuyPlayerHist.json")
@@ -48,7 +50,8 @@ class LoadAndRecov():
     def move_db(self, new_path):
         from shutil import move
         if self.data.bnuy_path == new_path:
-            ui.general_exception("The database already exists in the selected path!")
+            ui.general_exception(
+                "The database already exists in the selected path!")
             return
 
         if not os.path.isdir(new_path):
@@ -59,7 +62,8 @@ class LoadAndRecov():
         stuff_in_new_db = os.listdir(new_path)
 
         for file in os.listdir(self.data.bnuy_path):
-            if file == "DO_NOT_DELETE.json": continue
+            if file == "DO_NOT_DELETE.json":
+                continue
             stuff_in_old_db.append(file)
 
         # this moves every file
@@ -67,14 +71,16 @@ class LoadAndRecov():
             try:
                 src = os.path.join(self.data.bnuy_path, file)
                 if file in stuff_in_new_db:
-                    print(f"A file/folder already exists with the name of {file} already exists in the new path!")
+                    print(
+                        f"A file/folder already exists with the name of {file} already exists in the new path!")
                     print("Skipping..")
                     continue
                 move(src, new_path)
                 print(f"Moved) {file}")
 
             except PermissionError:
-                ui.special_exception("Aborting!! BnuuyPlayer is missing permission from writing into that folder!")
+                ui.special_exception(
+                    "Aborting!! BnuuyPlayer is missing permission from writing into that folder!")
                 continue
 
             except OSError as e:
@@ -85,31 +91,35 @@ class LoadAndRecov():
 
             for num, tupl in self.data.song_paths.items():
                 # ignore folders
-                if folder_manager.bnuuyfolder_check(tupl): continue
+                if folder_manager.bnuuyfolder_check(tupl):
+                    continue
 
                 name, path, is_stream, funct = tupl
                 # ignore streamed
-                if is_stream: continue
+                if is_stream:
+                    continue
 
-                # This fixes the paths from the old bnuy_path into the new one!:3
+                # This fixes the paths from the old bnuy_path into the new
+                # one!:3
                 if path.startswith(self.data.bnuy_path + os.path.sep):
 
                     # this cuts up the path
-                    path_len = len(self.data.bnuy_path)+1
+                    path_len = len(self.data.bnuy_path) + 1
                     split_path = path[path_len:]
 
                     # rewrites the old path with the new one anr combines
                     path = os.path.join(new_path, split_path)
 
                     # this ensures that the dir actually moved before rewriting
-                    if not os.path.isdir(path): continue
+                    if not os.path.isdir(path):
+                        continue
 
                     # rewrites old entry
                     self.data.song_paths[num] = name, path, is_stream, funct
 
             self.data.bnuy_path = new_path
 
-            self.data.hist_path = os.path.join(new_path, "BnuyPlayerHist.json") 
+            self.data.hist_path = os.path.join(new_path, "BnuyPlayerHist.json")
             self.hist_path = os.path.join(new_path, "BnuyPlayerHist.json")
 
             self.data.hist_backup1 = os.path.join(new_path, "BnuyBackup1.json")
@@ -119,7 +129,7 @@ class LoadAndRecov():
             self.hist_backup2 = os.path.join(new_path, "BnuyBackup2.json")
 
             self.data.keybind_dir = os.path.join(new_path, "bnuybinds.conf")
-            
+
             tries = 0
             while tries < 2:
                 try:
@@ -128,19 +138,22 @@ class LoadAndRecov():
                     break
                 except (OSError, PermissionError) as e:
                     if tries == 1:
-                        print("Failed!:( Error is below, before quitting please note that your library is fine, but will become unlinked on the next session")
+                        print(
+                            "Failed!:( Error is below, before quitting please note that your library is fine, but will become unlinked on the next session")
                         print(f"Fix the error and retry!\n\n{e}")
                         break
-                    ui.special_exception("An unknown error occurred when saving the path, retrying 1 more time..")
+                    ui.special_exception(
+                        "An unknown error occurred when saving the path, retrying 1 more time..")
                     tries += 1
-
 
     #### SAVE DATABASE PATH ####
 
     def save_db_path(self):
         home_path = os.path.join(self.data.home_path(), "DO_NOT_DELETE.json")
 
-        db_tmp_path = os.path.join(self.data.home_path(), "DO_NOT_DELETE.json.tmp")
+        db_tmp_path = os.path.join(
+            self.data.home_path(),
+            "DO_NOT_DELETE.json.tmp")
         db_path = home_path
 
         with open(db_tmp_path, "w") as f:
@@ -194,7 +207,6 @@ class LoadAndRecov():
             os.replace(tmp_path, self.hist_path)
             successful_saves += 1
 
-
             # Reads from main hist, write to backup1
             with open(self.hist_path, "r") as mainhist, open(self.hist_backup1, "w") as backup1:
                 backup1.write(mainhist.read())
@@ -213,7 +225,8 @@ class LoadAndRecov():
 
         except OSError as e:
             import sys
-            print(f"Device ERROR during save, BnuuyPlayer is unable to work properly! Error message: \n\n{e}\n")
+            print(
+                f"Device ERROR during save, BnuuyPlayer is unable to work properly! Error message: \n\n{e}\n")
             print("Do not attempt to re-run BnuuyPlayer until this has been fixed! Your library could get corrupted.")
             print("Exiting for safety..")
             sys.exit()
@@ -246,17 +259,18 @@ class LoadAndRecov():
                         backup2 = f.read()
                     success_reads += 1
 
-            except(FileNotFoundError,OSError):
+            except (FileNotFoundError, OSError):
 
-                if success_reads == 1: main = "UNREADABLE OR DELETED"
+                if success_reads == 1:
+                    main = "UNREADABLE OR DELETED"
 
-                elif success_reads == 2: backup1 = "UNREADABLE OR DELETED"
+                elif success_reads == 2:
+                    backup1 = "UNREADABLE OR DELETED"
 
-                else: backup2 = "UNREADABLE OR DELETED"
+                else:
+                    backup2 = "UNREADABLE OR DELETED"
 
-                success_reads += 1  
-
-
+                success_reads += 1
 
         ui.corr_last_stand(main, backup1, backup2)
 
@@ -265,9 +279,15 @@ class LoadAndRecov():
         while True:
 
             """Backs up all available corrupted backups"""
-            corr_path = os.path.join(self.data.bnuy_path, f"CorruptedBnuuyHist_{num}.json")
-            corr_backup1 = os.path.join(self.data.bnuy_path, f"CorruptedBnuuyBackup_{num}.json")
-            corr_backup2 = os.path.join(self.data.bnuy_path, f"CorruptedBnuuyBackup2_{num}.json")
+            corr_path = os.path.join(
+                self.data.bnuy_path,
+                f"CorruptedBnuuyHist_{num}.json")
+            corr_backup1 = os.path.join(
+                self.data.bnuy_path,
+                f"CorruptedBnuuyBackup_{num}.json")
+            corr_backup2 = os.path.join(
+                self.data.bnuy_path,
+                f"CorruptedBnuuyBackup2_{num}.json")
 
             json_checker = os.path.isfile(corr_path)
             backup_checker = os.path.isfile(corr_backup1)
@@ -289,15 +309,12 @@ class LoadAndRecov():
                     os.rename(self.hist_backup2, corr_backup2)
                 break
 
-
-
-
     #### HIST LOADER ####
 
     def loader_bunny(self, num):
         hists = {1: self.hist_path,
                  2: self.hist_backup1,
-                 3: self.hist_backup2,}
+                 3: self.hist_backup2, }
         try:
             # attempts to load all hists, an error increments num
             # incrementing is done by processor
@@ -306,10 +323,10 @@ class LoadAndRecov():
             with open(path) as f:
                 self.data.bulk_save = json.load(f)
 
-        except(json.JSONDecodeError,
-               AttributeError,
-               SyntaxError,
-               FileNotFoundError):
+        except (json.JSONDecodeError,
+                AttributeError,
+                SyntaxError,
+                FileNotFoundError):
             # Returns back to processor to let it do the job of incrementing
             pass
 
@@ -321,7 +338,6 @@ class LoadAndRecov():
         recovered = {}
         failed = {}
         for key, method in values.items():
-
 
             while True:
 
@@ -338,16 +354,14 @@ class LoadAndRecov():
                     failed[key] = method
                     # Resets back to 1
                     recov_attempts = 2
-                    break 
+                    break
 
-                else: 
+                else:
                     self.loader_bunny(recov_attempts)
-                    recov_attempts += 1 
+                    recov_attempts += 1
                     continue
 
         return failed, recovered
-
-
 
     #### LOADSAVE FILE LOADER ####
 
@@ -358,30 +372,33 @@ class LoadAndRecov():
 
         # Dict keys match the JSON keys.
         lookup_registry = {
-        "0": "song_paths",
-        "1": "initialized",
-        "2": "no_hint",
-        "3": "shuffl",
-        "4": "time_used",
-        "5": "time_playing",
-        "6": "video",
-        "7": "ram_allocated",
-        "8": "gapless_toggle",
-        "9": "valid_domains",
-        "10": "easter_eggs",
+            "0": "song_paths",
+            "1": "initialized",
+            "2": "no_hint",
+            "3": "shuffl",
+            "4": "time_used",
+            "5": "time_playing",
+            "6": "video",
+            "7": "ram_allocated",
+            "8": "gapless_toggle",
+            "9": "valid_domains",
+            "10": "easter_eggs",
         }
+
         domain_backup = self.data.valid_domains
+        easter_egg_backup = self.data.easter_eggs
 
         failed_keys = {}
 
         for key, item in lookup_registry.items():
             # equivalent to e.g: self.song_paths = self.bulk_save.get("0")
-            # setattr is required as self.item = ... would create an attribute 
+            # setattr is required as self.item = ... would create an attribute
             # named item rather than interacting with the actual items.
 
             if key == "10" and self.data.bulk_save.get(key) is not None:
                 """Easter Egg Updater"""
-                # Easter eggs in disc overwrite the ones in memory, this patchws that so new easter eggs are shown
+                # Easter eggs in disc overwrite the ones in memory, this
+                # patchws that so new easter eggs are shown
                 easter_eggs = self.data.bulk_save[key]
                 # this checks to nake sure it should begin editing
                 if len(self.data.easter_eggs) > len(easter_eggs):
@@ -390,24 +407,31 @@ class LoadAndRecov():
                         saved_easter_egg = easter_eggs.get(num)
                         set_to_true = False
 
-                        if saved_easter_egg is None: pass 
-                        
+                        if saved_easter_egg is None:
+                            pass
+
                         else:
-                            # this saves the user's progress by setting the found flag back to True
-                            if saved_easter_egg[3] is True: set_to_true = True
-                            # this is so they match, the memory's easter eggs all only have False
+                            # this saves the user's progress by setting the
+                            # found flag back to True
+                            if saved_easter_egg[3] is True:
+                                set_to_true = True
+                            # this is so they match, the memory's easter eggs
+                            # all only have False
                             saved_easter_egg[3] = False
 
-                        if saved_easter_egg == list(self.data.easter_eggs[num]):
-                            if set_to_true: saved_easter_egg[3] = True
+                        if saved_easter_egg == list(
+                                self.data.easter_eggs[num]):
+                            if set_to_true:
+                                saved_easter_egg[3] = True
                             continue
 
                         easter_eggs[num] = list(self.data.easter_eggs[num])
-                        if set_to_true: 
+                        if set_to_true:
                             easter_eggs[num][3] = True
                             easter_eggs[num] = tuple(easter_eggs[num])
 
-                        else: easter_eggs[num] = tuple(easter_eggs[num])
+                        else:
+                            easter_eggs[num] = tuple(easter_eggs[num])
 
                     self.data.bulk_save[key] = easter_eggs
 
@@ -421,105 +445,107 @@ class LoadAndRecov():
         # this is used to make self.shuffl a list as a flag
         make_list = False
 
-
         if len(failed_keys) >= recov_attempts:
 
-                failed, recovered = self.recovery_bunny(failed_keys)
+            failed, recovered = self.recovery_bunny(failed_keys)
 
-                if "0" in failed:
-                    """Song paths check"""
-                    # this initiates a full panic(?) because the library is gone
-                    self.corr_backup()
-                    self.data.song_paths = {}
-                    self.data.initialized = False
-                    self.data.no_hint = False
-                    self.data.video = False
-                    self.data.shuffl = [False, "placeholder"]
-                    self.data.gapless_toggle = False
-                    self.data.time_used = 0
-                    self.data.time_playing = 0
-                    self.data.ram_allocated = 10 
-                    self.data.valid_domains = domain_backup
-                    failed.clear()
-                    failed_keys.clear()
-                    return
+            if "0" in failed:
+                """Song paths check"""
+                # this initiates a full panic(?) because the library is gone
+                self.corr_backup()
+                self.data.song_paths = {}
+                self.data.initialized = False
+                self.data.no_hint = False
+                self.data.video = False
+                self.data.shuffl = [False, "placeholder"]
+                self.data.gapless_toggle = False
+                self.data.time_used = 0
+                self.data.time_playing = 0
+                self.data.ram_allocated = 10
+                self.data.valid_domains = domain_backup
+                self.data.easter_eggs = easter_egg_backup
+                failed.clear()
+                failed_keys.clear()
+                return
 
-                make_list = False
+            make_list = False
 
-                if "4" in failed: 
-                    """Time used check"""
-                    print("Your time used stat was corrupted/unrecoverable, setting to 0.")
-                    del failed["4"]
-                    self.data.time_used = 0
+            if "4" in failed:
+                """Time used check"""
+                print("Your time used stat was corrupted/unrecoverable, setting to 0.")
+                del failed["4"]
+                self.data.time_used = 0
 
-                if "5" in failed:
-                    """Time playing check"""
-                    print("Your time playing stat was corrupted/unrecoverable, setting to 0.")
-                    self.data.time_playing = 0
-                    del failed["5"]
+            if "5" in failed:
+                """Time playing check"""
+                print(
+                    "Your time playing stat was corrupted/unrecoverable, setting to 0.")
+                self.data.time_playing = 0
+                del failed["5"]
 
-                if "7" in failed:
-                    """Allocated RAM"""
-                    print("Allocated RAM config was lost, defaulting to 10mB")
-                    self.data.ram_allocated = 10
-                    del failed["7"]
+            if "7" in failed:
+                """Allocated RAM"""
+                print("Allocated RAM config was lost, defaulting to 10mB")
+                self.data.ram_allocated = 10
+                del failed["7"]
 
-                if "9" in failed:
-                    print("Domain whitelist was lost!:( Defaulting to the original..")
-                    self.data.valid_domains = domain_backup
-                    del failed["9"]
+            if "9" in failed:
+                print("Domain whitelist was lost!:( Defaulting to the original..")
+                self.data.valid_domains = domain_backup
+                del failed["9"]
 
-                if "10" in failed:
-                    print("Your found EasterEggs have been lost, resetting to defaults..")
-                    del failed["10"]
+            if "10" in failed:
+                print("Your found EasterEggs have been lost, resetting to defaults..")
+                self.data.easter_eggs = easter_egg_backup
+                del failed["10"]
 
-                solved = []
-                for key, method in failed.items():
-                    while True:
-                        if key == "1" or key == "2" or key == "3" or key == "6" or key == "8":
-                            if key == "3": 
-                                """Shuffl check"""
-                                make_list = True
+            solved = []
+            for key, method in failed.items():
+                while True:
+                    if key == "1" or key == "2" or key == "3" or key == "6" or key == "8":
+                        if key == "3":
+                            """Shuffl check"""
+                            make_list = True
 
-                            choices = {
-                                "1": True, 
-                                "2": False,
-                                }
+                        choices = {
+                            "1": True,
+                            "2": False,
+                        }
 
-                            select = input(f"""A JSON entry was corrupted!
+                        select = input(f"""A JSON entry was corrupted!
 Entry) {method}
 
 1) Set it to the True/on position.
 2) Set it to the False/off position.
 
 >>> """)
-                            ui.term_cleaner()
+                        ui.term_cleaner()
 
-                            selected_bool = choices.get(select)
+                        selected_bool = choices.get(select)
 
-                            if selected_bool is None:
-                                ui.general_exception()
-                                continue
+                        if selected_bool is None:
+                            ui.general_exception()
+                            continue
 
-                            if make_list:
-                                selected_bool = [selected_bool, "placeholder"]
-                                make_list = False
+                        if make_list:
+                            selected_bool = [selected_bool, "placeholder"]
+                            make_list = False
 
-                            setattr(self.data, method, selected_bool)
-                            solved.append(key)
-                            break
+                        setattr(self.data, method, selected_bool)
+                        solved.append(key)
+                        break
 
-                        else: break
-                # Cleans up the failed keys
-                for key in solved:
-                    del failed[key]
-
+                    else:
+                        break
+            # Cleans up the failed keys
+            for key in solved:
+                del failed[key]
 
         tmp_handler = {}
         err_paths = {}
 
         invalid_countr = 0
-        
+
         """Playlist corr/valid sorter"""
         # Attempts to recover playlists, if it fails
         # it adds 1 to invalid countr, then adds it to err paths
@@ -535,9 +561,11 @@ Entry) {method}
 
                 # Sorts working and non working paths, bad ones are DELETED
                 if os.path.isdir(path) or is_stream is True:
-                    tmp_handler[num] = (name, path, is_stream, self.data.BnuyDJ.audio_funct)
+                    tmp_handler[num] = (
+                        name, path, is_stream, self.data.BnuyDJ.audio_funct)
                 else:
-                    print(f"Found a invalid save at {path} \ndeleting to prevent bugs..")
+                    print(
+                        f"Found a invalid save at {path} \ndeleting to prevent bugs..")
 
             else:
                 invalid_countr += 1
@@ -550,8 +578,10 @@ Corrupted/edited path) {tupl}""")
         if len(err_paths) > 0:
             print(f"Invalid saves list; {err_paths}")
 
-        self.data.song_paths = tmp_handler # pushes recovered playlists back into the dict
-        # Note: invalid songs are already scrubbed, theyre not included in tmp_handler
+        # pushes recovered playlists back into the dict
+        self.data.song_paths = tmp_handler
+        # Note: invalid songs are already scrubbed, theyre not included in
+        # tmp_handler
 
         tmp_db = {}
         # converts json string keys back into integers
@@ -579,12 +609,12 @@ def hist_creator(data):
     # Pulled from self, checks if the jsons actually exists.
     # If it doesnt exist, raise NewStart
     try:
-        if not os.path.isfile(data.hist_path) and not os.path.isfile(data.hist_backup2) and not os.path.isfile(data.hist_backup1): 
+        if not os.path.isfile(data.hist_path) and not os.path.isfile(
+                data.hist_backup2) and not os.path.isfile(data.hist_backup1):
             raise NewStart(data.bnuy_path, data)
 
         bnuy_file_stuff.processor()
 
     except NewStart as e:
         e.create_hist()
-
-    
+        bnuy_file_stuff.saver()

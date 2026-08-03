@@ -5,10 +5,12 @@ from datetime import timedelta
 
 #### TERMINAL CLEARER ####
 
+
 def term_cleaner():
     os.system("cls" if os.name == "nt" else "clear")
 
 #### GENERAL INVALID INPUT PRINTS ####
+
 
 def general_exception(extra_text=""):
     term_cleaner()
@@ -17,10 +19,12 @@ def general_exception(extra_text=""):
         print(extra_text)
     return
 
+
 def special_exception(err_text):
     term_cleaner()
     print(err_text)
     return
+
 
 def bad_folder_names():
     term_cleaner()
@@ -75,10 +79,13 @@ ___________________________________________________________|""")
     return
 
 #### GENERAL INPUTS ####
+
+
 def intput():
     txt = int(input("\n>>> "))
     term_cleaner()
     return txt
+
 
 def strput():
     txt = input("\n>>> ")
@@ -86,6 +93,7 @@ def strput():
     return txt
 
 #### KEYBINDING MENU ####
+
 
 def binding_menu():
     """Keybind menu"""
@@ -152,8 +160,9 @@ ___________________________________________________________|
 ___________________________________________________________|""")
 
     return intput()
-    
+
 #### TIMER PRINTER ####
+
 
 def time_print(mode, time):
     time_elapsed = str(timedelta(seconds=time))
@@ -164,14 +173,16 @@ def time_print(mode, time):
 
 ####### MAIN MENU #######
 
+
 def easter_egg_menu(easter_eggs):
     print("""
 ___________________________________________________________
 ▼ EasterEggs ▼                                            /\\""")
 
     for key, (name, hint, info, found) in easter_eggs.items():
-        if found: found = "You found this Easter Egg!:3"
-        else: 
+        if found:
+            found = "You found this Easter Egg!:3"
+        else:
             found = "Not found yet"
             info = "Find this Easter Egg to view it's info"
 
@@ -181,7 +192,7 @@ Hint) {hint}
 Info) {info}""")
 
     print("""
-___________________________________________________________\\/ 
+___________________________________________________________\\/
 ▼ Statistics ▼                                             |
                                                            |
 1) Amount of time you have been using Bnuuyplayer for      |
@@ -189,6 +200,7 @@ ___________________________________________________________\\/
 0) Return                                                  |
 ___________________________________________________________|""")
     return strput()
+
 
 def kitty():
     print("""
@@ -201,6 +213,7 @@ def kitty():
 ⣠⠾⠋⠙⣶⣤⣤⣤⣤⣤⣀⣠⣤⣾⣿⠴⠶⠚⠋⠉⠁⠀⠀⠀⠀⠀⠀
 ⠛⠒⠛⠉⠉⠀⠀⠀⣴⠟⣣⡴⠛⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠛⠛⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀""")
+
 
 def proto():
     print(":3 beepboopbeep")
@@ -218,6 +231,7 @@ ___________________________________________________________|""")
 
 ####### MOVE FILE METHOD MENUS #######
 
+
 def move_file_menu():
     print("""
 ___________________________________________________________\\/
@@ -227,10 +241,11 @@ Please select the location you'd like to move the song to. |
 ___________________________________________________________|""")
 
     return intput()
-    
+
+
 def confirm(path, dest_path):
     print(f"""
-___________________________________________________________ 
+___________________________________________________________
 Are you sure?                                              /\\
 Source) {path}
 Destination) {dest_path}
@@ -256,6 +271,7 @@ Are you sure? you are deleting) {os.path.basename(os.path.splitext(path)[0])}
 ___________________________________________________________|""")
     return strput()
 
+
 def cmd_handler_copy_confirm(path):
     print(f"""
 ___________________________________________________________\\/
@@ -267,7 +283,7 @@ ___________________________________________________________|""")
 
     return intput()
 
-   
+
 ####### BULK MOVER MENUS #######
 
 def bulk_move_select():
@@ -279,6 +295,7 @@ Please select a playlist to move the song(s) into.         |
 ___________________________________________________________|""")
 
     return intput()
+
 
 def bulk_move_confirm(params, playlist):
     print(f"""
@@ -306,16 +323,19 @@ Select a playlist to copy the files into.                  |
 ___________________________________________________________|""")
     return intput()
 
+
 def bulk_copy_confirm(info):
     mb = info.get("mb")
     gb = info.get("gb")
 
-    if int(gb) == 0: gb = "Less than 1 GB"
-    else: gb = int(gb)
+    if int(gb) == 0:
+        gb = "Less than 1 GB"
+    else:
+        gb = int(gb)
 
     playlist = info.get("playlist")
     params = info.get("params")
-   
+
     print(f"""
 __________________________________________________________/\\
 Are you sure? you are copying {len(params)} files (excluding lyric files)
@@ -330,6 +350,7 @@ ___________________________________________________________|""")
 
 ####### METADATA BULK DELETE MENUS #######
 
+
 def bulk_del_confirm(params):
     print(f"""
 ___________________________________________________________
@@ -343,6 +364,7 @@ ___________________________________________________________|""")
 
 ####### BASIC INVESTIBUN #######
 
+
 def investibun_main():
     print("""___________________________________________________________
 Search bnuuyplayer for a song/playlist.                    |
@@ -353,15 +375,17 @@ Search bnuuyplayer for a song/playlist.                    |
 ___________________________________________________________|""")
     return strput()
 
+
 def investibun_query():
     print("""
-___________________________________________________________ 
+___________________________________________________________
 Enter the name of what you'd like to find.                 |
                                                            |
 0) Return                                                  |
 ___________________________________________________________|""")
 
     return strput()
+
 
 def basic_result_print(info):
     playlist_handler = info.get("playlist_handler")
@@ -382,21 +406,22 @@ ___________________________________________________________
 
             for disp_key, (og_saved_key, is_folder) in keys.items():
                 # this resolves the display key for the user's convenience
-                if is_folder: continue
+                if is_folder:
+                    continue
 
-                if og_key == og_saved_key: 
-                  key = disp_key
-                  found_disp_key = True
-                  break
+                if og_key == og_saved_key:
+                    key = disp_key
+                    found_disp_key = True
+                    break
 
             if not found_disp_key:
-                  key = "No match found :("
+                key = "No match found :("
 
-            if is_stream and name in search: 
+            if is_stream and name in search:
                 print(f"""{num}) {disp_name} (Online stream.)
 (located at {key})\n""")
 
-            elif name in search: 
+            elif name in search:
                 print(f"""{num}) {disp_name}
 (located at {key})\n""")
 
@@ -404,7 +429,7 @@ ___________________________________________________________
         """Song paths printer"""
 
         print("""
-___________________________________________________________ 
+___________________________________________________________
 ▼ Closest song matches ▼                                  /\\\n""")
         for key, names in entries.items():
             playlist_name, _, _, _, = db[key]
@@ -412,7 +437,8 @@ ___________________________________________________________
             found_disp_key = False
             for disp_key, (og_key, is_folder) in keys.items():
                 # same basic function as above :3
-                if is_folder: continue
+                if is_folder:
+                    continue
 
                 if key == og_key:
                     key = disp_key
@@ -431,9 +457,11 @@ Playlist key) {key}\n""")
     print("__________________________________________________________\\/")
 
 ####### ADVANCED INVESTIBUNNY MENUS #######
+
+
 def advanced_select_query():
     print("""
-___________________________________________________________ 
+___________________________________________________________
 ▼ Advanced search doesnt support ▼                         |
                                                            |
 .webm .mkv .mod .xm .s3m .it .mid .midi                    |
@@ -458,6 +486,7 @@ ___________________________________________________________|""")
 
     return strput()
 
+
 def advanced_result_print(results, playlists, keys):
     print("""
 ___________________________________________________________
@@ -471,7 +500,8 @@ ___________________________________________________________
         # thats the default value if nothing is found
         disp_location = "None found :("
         for disp_key, (og_key, is_folder) in keys.items():
-            if is_folder: continue
+            if is_folder:
+                continue
 
             if location == og_key:
                 disp_location = disp_key
@@ -486,9 +516,10 @@ ___________________________________________________________
 Artist(s): {artist}
 Title: {title}
 Album: {album}
-Playlist name: {playlists[location][0]} 
+Playlist name: {playlists[location][0]}
 Playlist key: {disp_location}""")
     return
+
 
 def advanced_result_selection():
     print("""
@@ -517,6 +548,7 @@ ___________________________________________________________|""")
 
 ####### PLAYLIST PICKER #######
 
+
 def playlist_main_menu():
     print("""__________________________________________________________\\/
 ▼ Extra commands ▼                                         |
@@ -529,6 +561,7 @@ dl) Download lyrics for existing songs(note: this relies on metadata)
 ___________________________________________________________|""")
 
     return strput()
+
 
 def song_picker_menu():
     print("""
@@ -544,7 +577,7 @@ ___________________________________________________________|
 <num> ul — Unlike a song, remove it from liked sonte       |
 <num> d — Delete a song from disk.                         |
 <num> m — Move a song to a new playlist.                   |
-<num> c — Copy a song file to a new playlist.              | 
+<num> c — Copy a song file to a new playlist.              |
 <num> p — Play a single song.                              |
 ___________________________________________________________|""")
 
@@ -600,6 +633,7 @@ Please input a path to a folder.""")
 
     return strput()
 
+
 def path_playlist_name():
     print("""
 ___________________________________________________________
@@ -610,6 +644,7 @@ ___________________________________________________________
 ___________________________________________________________|""")
 
     return strput()
+
 
 def path_final_menu():
     print("""
@@ -625,6 +660,7 @@ ___________________________________________________________|""")
 
 ## FOLDER MAKER
 
+
 def allow_folder_creation():
     print("""
 ___________________________________________________________
@@ -636,6 +672,7 @@ ___________________________________________________________|""")
 
     return strput()
 
+
 def new_folder_name():
     print("""
 ___________________________________________________________
@@ -644,6 +681,7 @@ ___________________________________________________________|""")
 
     return strput()
 
+
 def success_print(path):
     print(f"""\nSuccessfully created.
 Path to the new playlist folder) {path}
@@ -651,6 +689,7 @@ Path to the new playlist folder) {path}
 You can add any song to the newly created playlist.""")
 
 ## FOLDER SEARCHER
+
 
 def main_folder_search(bnuy_dir):
     """Folder printer"""
@@ -661,7 +700,7 @@ ___________________________________________________________
 ▼ Folders found in current dir ▼                           |
 ___________________________________________________________|
                                                            \\/""")
-            
+
     for file in os.listdir(bnuy_dir):
 
         file = os.path.join(bnuy_dir, file)
@@ -671,7 +710,6 @@ ___________________________________________________________|
 
     if countr == 0:
         print("No folders found! please use one of the other methods.")
-
 
     print("""___________________________________________________________\\/
 Please enter the folder you'd like to select               |
@@ -683,6 +721,7 @@ ___________________________________________________________|""")
 
     return strput()
 
+
 def multi_folder_found():
     print("""
 ___________________________________________________________
@@ -692,20 +731,22 @@ Which one is correct? If all are, enter "a"                |
 ___________________________________________________________|""")
     return strput().lower()
 
+
 def folder_success(path):
     print(f"""
 __________________________________________________________/\\
 Successfully found at {path}! :3
 __________________________________________________________\\/
 ▼ Extra commands ▼                                         |
-                                                           | 
+                                                           |
 1) Add another folder                                      |
 0) Return to BnuuyPlayer.                                  |
 ___________________________________________________________|""")
 
     return intput()
 
-## YT-DLP ADDER 
+## YT-DLP ADDER
+
 
 def stream_or_dl():
     print("""
@@ -719,12 +760,13 @@ ___________________________________________________________|""")
 
     return intput()
 
+
 def url_input():
     print("""
 ___________________________________________________________
 Enter a url                                                |
                                                            |
-___________________________________________________________|         
+___________________________________________________________|
 ▼ Extra commands ▼                                         |
                                                            |
 0) Back/cancel                                             |
@@ -732,10 +774,11 @@ ___________________________________________________________|""")
 
     return strput()
 
+
 def print_site_whitelist(valid_domains):
     term_cleaner()
-    print("""Unsupported domain!\n 
-___________________________________________________________ 
+    print("""Unsupported domain!\n
+___________________________________________________________
 ▼ Bnuuyplayer supports ▼                                  /\\""")
     for domain in valid_domains:
         print(domain)
@@ -743,6 +786,8 @@ ___________________________________________________________
     print("__________________________________________________________\\/")
 
 # Download route
+
+
 def download_selection():
     print("""
 ___________________________________________________________
@@ -757,6 +802,7 @@ ___________________________________________________________|""")
 
     return intput()
 
+
 def pick_playlist_dl():
     print("""
 ___________________________________________________________
@@ -769,6 +815,7 @@ ___________________________________________________________|""")
 
     return intput()
 
+
 def pick_new_folder_name():
     print("""
 ___________________________________________________________
@@ -776,6 +823,7 @@ What would you like to name the folder?                    |
 ___________________________________________________________|""")
 
     return strput()
+
 
 def disp_name_select():
     print("""
@@ -787,6 +835,7 @@ Enter the name, or select an option below ▼                |
 ___________________________________________________________|""")
 
     return strput()
+
 
 def file_extension_select():
     print("""
@@ -815,6 +864,7 @@ Warning: Do not include a dot when entering the file extension.""")
 
 # Stream route
 
+
 def streamed_playlist_name():
     print("""
 ___________________________________________________________
@@ -831,9 +881,11 @@ ___________________________________________________________|""")
 
 ### CREATE BNUUYFOLDER
 ## Make BnuuyFolder
+
+
 def new_bnuuyfolder_name():
     print("""
-___________________________________________________________ 
+___________________________________________________________
 Enter a name for the BnuuyFolder                           |
 ___________________________________________________________|
 ▼ Extra commands ▼                                         |
@@ -843,9 +895,10 @@ ___________________________________________________________|""")
 
     return strput()
 
+
 def new_bnuuyfolder_made():
-    print("""Successfully created BnuuyFolder!\n 
-___________________________________________________________ 
+    print("""Successfully created BnuuyFolder!\n
+___________________________________________________________
 ▼ Commands ▼                                               |
                                                            |
 1) Create another folder                                   |
@@ -855,6 +908,7 @@ ___________________________________________________________|""")
     return strput()
 
 ### Add to BnuuyFolder
+
 
 def select_playlist_folder():
     print("""
@@ -869,15 +923,17 @@ ___________________________________________________________|""")
 
     return strput()
 
+
 def bnuuyfolder_add_help_text():
     term_cleaner()
     print("""
 ▼ The valid structure is ▼
-(playlist number) (folder number) 
+(playlist number) (folder number)
 separated by a space.
 
-e.g) 4 6 
+e.g) 4 6
 That will be the 4th playlist, and the folder associated with the number 6.""")
+
 
 def bnuuyfolder_confirm_add(playlist_name, folder_name):
     print(f"""
@@ -893,7 +949,8 @@ ___________________________________________________________|""")
 
     return strput()
 
-### BnuuyFolder delete 
+### BnuuyFolder delete
+
 
 def delete_bnuuyfolder_selection():
     print("""
@@ -905,10 +962,11 @@ ___________________________________________________________|""")
 
     return intput()
 
+
 def delete_bnuuyfolder_confirm(name):
     print(f"""
 __________________________________________________________/\\
-You are deleting) {name}                                
+You are deleting) {name}
 
 Are you sure? this is permanent.                          \\/
 ___________________________________________________________|
@@ -918,7 +976,9 @@ ___________________________________________________________|""")
 
     return intput()
 
-## Delete a playlist 
+## Delete a playlist
+
+
 def del_select_bnuuyfolder():
     print("""
 ___________________________________________________________\\/
@@ -929,11 +989,12 @@ ___________________________________________________________|""")
 
     return intput()
 
+
 def del_confirm(playlist, folder):
     print(f"""
 __________________________________________________________/\\
 You will be deleting {playlist} inside {folder}
-                                                          \\/   
+                                                          \\/
 Are you sure? this will move the playlist out.             |
 ___________________________________________________________|
 1) Confirm                                                 |
@@ -943,6 +1004,8 @@ ___________________________________________________________|""")
     return intput()
 
 ## Rename bnuuyfolder
+
+
 def bnuuyfolder_rename_select():
     print("""
 ___________________________________________________________\\/
@@ -952,6 +1015,7 @@ Please select a folder to rename.                          |
 ___________________________________________________________|""")
 
     return intput()
+
 
 def bnuuyfolder_rename(old_name):
     print(f"""
@@ -966,24 +1030,27 @@ __________________________________________________________|""")
 
 ####### SITE HANDLING #######
 
+
 def site_printer(valid_domains):
-        site_amount = 0
-        domains = {}
-        print("""
+    site_amount = 0
+    domains = {}
+    print("""
 ___________________________________________________________
 ▼ Current sites ▼                                          /\\""")
 
-        for site in valid_domains:
-            site_amount += 1
-            print(f"{site_amount}) {site}")
-            domains[site_amount] = site
+    for site in valid_domains:
+        site_amount += 1
+        print(f"{site_amount}) {site}")
+        domains[site_amount] = site
 
-        if len(valid_domains) < 1:
-            print("No sites whitelisted!:(")
+    if len(valid_domains) < 1:
+        print("No sites whitelisted!:(")
 
-        return site_amount, domains
+    return site_amount, domains
 
 ## WHITELIST MENUS
+
+
 def whitelist_site_main():
     print("""
 ___________________________________________________________\\/
@@ -998,6 +1065,8 @@ ___________________________________________________________|""")
     return intput()
 
 # ADD ROUTE
+
+
 def enter_new_site():
     print("""
 ___________________________________________________________
@@ -1010,6 +1079,7 @@ ___________________________________________________________|""")
 
 # DEL ROUTE
 
+
 def del_site_select():
     print("""
 ___________________________________________________________
@@ -1019,6 +1089,7 @@ Please select the site you'd like to remove.               |
 ___________________________________________________________|""")
 
     return intput()
+
 
 def del_site_confirm(domains, del_site):
     print(f"""
@@ -1039,7 +1110,7 @@ def liked_songs_remover_print(folder):
     print("___________________________________________________________/\\")
 
     for path in folder[2:]:
-        songs[len(songs)+1] = path
+        songs[len(songs) + 1] = path
         print(f"{len(songs)}) {os.path.basename(os.path.splitext(path)[0])}")
 
     if len(songs) == 0:
@@ -1057,9 +1128,10 @@ ___________________________________________________________|""")
 
 ####### REMOVE PLAYLIST #######
 
+
 def remove_playlist():
     print("""
-___________________________________________________________ 
+___________________________________________________________
                                                            \\/
 Which would you like to delete?                            |
 (This only deletes the playlist from BnuuyPlayer!)         |
@@ -1070,6 +1142,7 @@ ___________________________________________________________|""")
 
     return intput()
 
+
 def confirm_remove(playlist_name):
     print(f"""Are you sure?
 You are removing {playlist_name}
@@ -1077,6 +1150,7 @@ You are removing {playlist_name}
 1) Confirm
 0) Return""")
     return intput()
+
 
 def delete_playlist_selection():
     print("""___________________________________________________________\\/
@@ -1089,12 +1163,13 @@ ___________________________________________________________|""")
 
     return intput()
 
+
 def delete_confirm(delname):
     print(f"""
 ___________________________________________________________/\\
 Are you sure? you are deleting) {delname}
 This is permanent.                                         \\/
-                                                           | 
+                                                           |
 1) Delete                                                  |
 0) Return                                                  |
 ___________________________________________________________| """)
@@ -1104,6 +1179,8 @@ ___________________________________________________________| """)
 ####### RENAME PLAYLIST #######
 
 ## Rename selection
+
+
 def playlist_rename_select():
     print("""
 ___________________________________________________________\\/
@@ -1113,6 +1190,7 @@ Which playlist would you like to rename?                   |
 ___________________________________________________________|""")
 
     return intput()
+
 
 def playlist_new_name(playlist):
     print(f"""
@@ -1128,12 +1206,15 @@ ___________________________________________________________|""")
 ####### METADATA STUFF #######
 
 ## Write/Delete metadata
+
+
 def tag_printer(tags, enter_msg):
-    
+
     print("""___________________________________________________________\\/
 ▼ Valid tags ▼                                             /\\
 """)
-    for tag in tags.keys(): print(tag)
+    for tag in tags.keys():
+        print(tag)
 
     print(f"""___________________________________________________________\\/
 {enter_msg}
@@ -1143,6 +1224,7 @@ e.g) 3 album                                               _
 ___________________________________________________________|""")
 
     return strput()
+
 
 def enter_new_metadata(data_choice, tag, curr_tag):
     print(f"""
@@ -1159,6 +1241,7 @@ ___________________________________________________________|""")
 ####### SETTINGS #######
 
 ### Metadata main settings
+
 
 def metadata_main_menu():
     print("""
@@ -1180,7 +1263,7 @@ Input: <playlist num> <setting>""")
 ### PLAYLIST SETTINGS
 def main_settings_menu():
     print("""
-___________________________________________________________ 
+___________________________________________________________
 ▼ BnuuyFolder settings ▼                                   |
 (Note: These are not File system folders)                  |
                                                            |
@@ -1189,7 +1272,7 @@ ___________________________________________________________
 3) Delete a folder                                         |
 4) Remove a playlist from a folder                         |
 5) Edit a folder name                                      |
-___________________________________________________________| 
+___________________________________________________________|
 ▼ Playlist settings ▼                                      |
                                                            |
 6) Delete a playlist from BnuuyPlayer                      |
@@ -1204,7 +1287,9 @@ ___________________________________________________________|""")
 
     return intput()
 
-### MAIN SETTINGS 
+### MAIN SETTINGS
+
+
 def main_settings(shuffl, ram, gap_state, video_state):
     print(f"""
 ___________________________________________________________
@@ -1229,6 +1314,7 @@ ___________________________________________________________|""")
 
     return intput()
 
+
 def db_location_enter(curr_path):
     print(f"""
 ___________________________________________________________
@@ -1239,7 +1325,9 @@ ___________________________________________________________|""")
 
     return path_input()
 
-#### MAX RAM SETTING SUB MENU 
+#### MAX RAM SETTING SUB MENU
+
+
 def max_ram(ram_allocated):
     print(f"""
 ___________________________________________________________
@@ -1280,6 +1368,7 @@ To use BnuuyPlayer, there must first be a valid song folder/playlist.""")
 
 ####### MAIN MENU #######
 
+
 def print_welcome():
     print("""
               ⠀⠀⣠⡶⢶⣦⠀⠀⠀⣠⡶⢶⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
@@ -1301,6 +1390,7 @@ ___________________________________________________________
 Welcome back to BnuuyPlayer!                               |
 ___________________________________________________________|\n""")
 
+
 def print_main(main_methods, no_hint):
     print("""___________________________________________________________
                                                           /\\""")
@@ -1309,7 +1399,7 @@ def print_main(main_methods, no_hint):
     print("__________________________________________________________\\/")
     if not no_hint:
         print("""▼ Extra commands ▼                                         |
-                                                           | 
+                                                           |
 h/H) Extra information, use if you're lost.                |
 t) Toggle this message off/on.                             |
 ___________________________________________________________|""")
@@ -1318,6 +1408,7 @@ ___________________________________________________________|""")
 _________________/""")
 
     return strput().lower()
+
 
 def print_help(main_operations):
     print("""

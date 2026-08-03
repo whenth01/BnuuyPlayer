@@ -1,5 +1,7 @@
 # ChangeLog
 
+Current release changelog) [V1.0.9](#v1-0-9)
+
 ## V0.2 BETA
 
 ### BUGFIXES AND POLISHING
@@ -150,3 +152,24 @@ Info: BnuuyPlayer saves the last instance of easter eggs, when updating it'll si
 
 ### ADDED FEATURES
 - Added a short cut to unliking/removing from bnuuyfolders to the main library menu
+
+## V1.0.9
+
+### BUG FIXES
+- Fixed a bug where a crash could occur 
+
+**▼ Reproduction for versions pre v1.0.9 ▼**
+
+1. Be at the very first startup menu
+2. Exit bnuuyplayer(ctrl c, crash, whatever)
+3. Start bnuuyplayer, it panics due to databases being empty, and brings the user unnecessarily to the total db corruption menus
+4. Continue with startup after this, then at the main menu enter easter eggs menu
+5. Attribute Error crash
+
+**▼ Explanation(i think at least qwq) ▼**
+1. Bnuuyplayer's database wasnt saved into disk right on the new start menu, causing the panic
+2. Then i failed to add a proper back up copy for easter eggs, leaving it empty
+3. Then when the user attempts to open the easter egg menu.. It crashes, since it no longer exists
+
+### OTHER
+- Used autopep8 to make the code cleaner

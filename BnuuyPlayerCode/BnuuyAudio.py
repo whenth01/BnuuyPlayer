@@ -5,7 +5,11 @@ from . import BnuyNumUI as ui
 from . import BnuuyFolderManager as folder_manager
 from shutil import which
 # escape from loops
-class Escape(Exception): pass
+
+
+class Escape(Exception):
+    pass
+
 
 class BnuuyDJ():
     def __init__(self, bnuydata):
@@ -29,8 +33,10 @@ class BnuuyDJ():
                 countr = 0
                 tmp_song = {}
 
-                # causes audio funct to raise ValueError, causing a return to main menu
-                if choice == "0": return choice, countr
+                # causes audio funct to raise ValueError, causing a return to
+                # main menu
+                if choice == "0":
+                    return choice, countr
 
                 elif choice.lower() == "s":
                     self.search.investibun_search()
@@ -48,11 +54,12 @@ class BnuuyDJ():
                     self.data.BnuyFolder.del_from_bnuuyfolder()
                     continue
 
-                else: choice = int(choice)
+                else:
+                    choice = int(choice)
 
                 # defines values that local song picker requires
                 choice = display_keys[choice][0]
-                
+
                 tupl = self.data.song_paths[choice]
                 liked_handler = False
 
@@ -63,23 +70,26 @@ class BnuuyDJ():
                         values = res.get("selected")
                         choice = res.get("key")
 
-                        if values is None: 
+                        if values is None:
                             liked_handler = True
                             path = res
                             is_stream = True
 
                         # return route
-                    else: continue
+                    else:
+                        continue
 
                     if values is not None:
                         """regular route"""
                         name, path, is_stream, function = values
 
-                else: name, path, is_stream, function = tupl
+                else:
+                    name, path, is_stream, function = tupl
                 if not liked_handler:
                     if not os.path.isdir(path) and is_stream is False:
                         ui.term_cleaner()
-                        print("The original folder is missing, did you move it or delete it?")
+                        print(
+                            "The original folder is missing, did you move it or delete it?")
                         print("Deleting playlist for stability..")
                         self.data.internal_delete(choice)
                         continue
@@ -104,17 +114,21 @@ class BnuuyDJ():
                 elif liked_handler is True:
                     disp_keys = {}
                     for num, song in res.items():
-                        disp_keys[len(disp_keys)+1] = num, song
+                        disp_keys[len(disp_keys) + 1] = num, song
 
                     for key, (og_key, song) in disp_keys.items():
-                        print(f"{key}) {os.path.basename(os.path.splitext(song)[0])}")
+                        print(
+                            f"{key}) {
+                                os.path.basename(
+                                    os.path.splitext(song)[0])}")
                         tmp_song[og_key] = song
 
                 else:
-                    # This prevents the second error message below from going off
-                    tmp_song[len(tmp_song)+1] = ""
+                    # This prevents the second error message below from going
+                    # off
+                    tmp_song[len(tmp_song) + 1] = ""
                     print(
-                    "Warning: Individual song picking is unsupported for streaming due to technical limitations."
+                        "Warning: Individual song picking is unsupported for streaming due to technical limitations."
                     )
                     picker_skip = True
 
@@ -132,7 +146,7 @@ class BnuuyDJ():
                             restart = True
                             break
 
-                    else: 
+                    else:
                         choice = "1"
                         break
 
@@ -147,29 +161,34 @@ class BnuuyDJ():
                             "cmd": cmd,
                             "path": path,
                             "songs": tmp_song,
-                            }
+                        }
 
                         res = self.data.cmd_handler(params)
-                        # res is only not none when a indiv song is to be played
+                        # res is only not none when a indiv song is to be
+                        # played
                         if res is None:
                             for num, file in tmp_song.items():
-                                print(f"{num}) {os.path.basename(os.path.splitext(file)[0])}")
+                                print(
+                                    f"{num}) {
+                                        os.path.basename(
+                                            os.path.splitext(file)[0])}")
                             continue
 
                         else:
                             liked_handler = False
                             break
 
-                    else: 
+                    else:
                         choice = int(choice)
                         break
 
-                if restart: continue
+                if restart:
+                    continue
 
-                elif choice == 1: 
+                elif choice == 1:
                     """regular route"""
-                    pass 
-                elif liked_handler is False and choice == "1": 
+                    pass
+                elif liked_handler is False and choice == "1":
                     """play stream route"""
                     pass
                 elif int(tmp_choice[0]) >= 1 and len(tmp_choice) > 1:
@@ -178,9 +197,11 @@ class BnuuyDJ():
 
                 # automatically moves on, no need for extra logic
 
-                else: raise ValueError 
+                else:
+                    raise ValueError
 
-                if not liked_handler: path = [path]
+                if not liked_handler:
+                    path = [path]
                 else:
                     if len(path) == 0:
                         ui.general_exception("No liked songs!:(")
@@ -195,23 +216,25 @@ class BnuuyDJ():
                     "--no-video",
                     "--cache",
                     f"--demuxer-max-bytes={self.data.ram_allocated}m",
-                    ]
+                ]
 
-                if self.data.video: player.remove("--no-video")
+                if self.data.video:
+                    player.remove("--no-video")
 
                 # f"--input-ipc-server={self.bnuy_path}/.mpv_socket"
                 # saving this here for when i have a laptop/pc.
 
-                if self.data.shuffl[0]: player.append("--shuffle")
+                if self.data.shuffl[0]:
+                    player.append("--shuffle")
 
-                if self.data.gapless_toggle: player.append("--gapless-audio=yes")
+                if self.data.gapless_toggle:
+                    player.append("--gapless-audio=yes")
 
                 return player
 
             except (KeyError, ValueError):
                 ui.general_exception()
                 continue
-
 
             except Escape:
                 continue
@@ -220,21 +243,26 @@ class BnuuyDJ():
         while True:
             player = self.playlist_picker()
             # return from song menu picker
-            if player is None: 
+            if player is None:
                 ui.term_cleaner()
                 continue
             # return from main picker menu
-            elif player == ("0", 0): return
-            else: break
+            elif player == ("0", 0):
+                return
+            else:
+                break
 
         if which("mpv") is None:
             print("Install MPV to access audio playback!")
-            print("You can install MPV by reading bnuuyplayer's github README.md and following the guide.")
+            print(
+                "You can install MPV by reading bnuuyplayer's github README.md and following the guide.")
             return
 
         print("")
 
-        playing_countr = Thread(target=self.data.time_playing_counter, daemon=True)
+        playing_countr = Thread(
+            target=self.data.time_playing_counter,
+            daemon=True)
         playing_countr.start()
 
         try:
@@ -243,7 +271,7 @@ class BnuuyDJ():
             ui.binding_menu()
             subprocess.run(player, check=True)
 
-        except(subprocess.CalledProcessError) as e:
+        except (subprocess.CalledProcessError) as e:
             print(f"Error occurred during playback! Error msg: {e}")
         self.data.stop_playing_counter = True
         self.data.BnuyFileManager.saver()

@@ -13,11 +13,11 @@ try:
     from . import BnuuyFileManager as file_io
     from . import BnuuyFolderManager as bnuyfolder
     from . import BnuuySearchManager as search_manager
-except(ModuleNotFoundError):
+except (ModuleNotFoundError):
     print("BnuuyPlayer seems to be missing code, please reinstall BnuuyPlayer!")
     sys.exit()
 
-try: 
+try:
     import requests
     import yt_dlp
 except (ModuleNotFoundError, ImportError):
@@ -48,22 +48,30 @@ except (ModuleNotFoundError, ImportError):
 
 """Inner loop Escape custom function"""
 # Used when escaping inner loops.
+
+
 class Escape(Exception):
     pass
 
+
 """Rare Errors exception"""
 # Raised as a general exception for unlikely/rare events
+
+
 class RareError(Exception):
     pass
 
+
 db_ref = {}
 
-def bnuuyplayer_state(db_ref, stuff): 
+
+def bnuuyplayer_state(db_ref, stuff):
     if stuff != "return pls:3":
         db_ref["bnuuydb"] = stuff
     return db_ref
 
 #### MAIN BNUUYPLAYER CLASS ####
+
 
 class BnuuyPlayer:
 
@@ -133,132 +141,131 @@ l cycle-values loop-file inf no"""
 
         """Callable dicts"""
         self.adders = {
-                0: "Skip.",
-                1: self.BnuyPlaylistAdd.path_adder,
-                2: self.BnuyPlaylistAdd.folder_maker,
-                3: self.BnuyPlaylistAdd.folder_searcher,
-                4: self.BnuyPlaylistAdd.yt_adder,
-                }
+            0: "Skip.",
+            1: self.BnuyPlaylistAdd.path_adder,
+            2: self.BnuyPlaylistAdd.folder_maker,
+            3: self.BnuyPlaylistAdd.folder_searcher,
+            4: self.BnuyPlaylistAdd.yt_adder,
+        }
 
         # Used to filter correct and false domains
         self.valid_domains = {"youtube.com",
-                "youtu.be",
-                "music.youtube.com",
-                "soundcloud.com",
-                "bandcamp.com",
-                "dai.ly",
-                "vimeo.com",
-                "tiktok.com",
-                "vm.tiktok.com",
-                "dailymotion.com",
-                "old.reddit.com",
-                "v.redd.it",
-                "reddit.com",
-                "instagr.am",
-                "instagram.com",
-                "fb.watch",
-                "facebook.com",
-                "fb.com",
-                "audiomack.com",
-                "mixcloud.com"}
-        
+                              "youtu.be",
+                              "music.youtube.com",
+                              "soundcloud.com",
+                              "bandcamp.com",
+                              "dai.ly",
+                              "vimeo.com",
+                              "tiktok.com",
+                              "vm.tiktok.com",
+                              "dailymotion.com",
+                              "old.reddit.com",
+                              "v.redd.it",
+                              "reddit.com",
+                              "instagr.am",
+                              "instagram.com",
+                              "fb.watch",
+                              "facebook.com",
+                              "fb.com",
+                              "audiomack.com",
+                              "mixcloud.com"}
+
         self.invalid_ext_set = {
-                ".midi", 
-                ".mid", 
-                ".mod",
-                ".xm", 
-                ".s3m", 
-                ".wma", 
-                ".lrc", 
-                ".py", 
-                ".json", 
-                ".conf"
-                }
+            ".midi",
+            ".mid",
+            ".mod",
+            ".xm",
+            ".s3m",
+            ".wma",
+            ".lrc",
+            ".py",
+            ".json",
+            ".conf"
+        }
 
         self.metadata_unsupported_ext = {
-                ".webm", 
-                ".mkv", 
-                ".it", 
-                ".avi", 
-                ".mov", 
-                ".mpg", 
-                ".mpeg", 
-                ".ts", 
-                ".flv", 
-                ".3gp"
-                }
+            ".webm",
+            ".mkv",
+            ".it",
+            ".avi",
+            ".mov",
+            ".mpg",
+            ".mpeg",
+            ".ts",
+            ".flv",
+            ".3gp"
+        }
 
         self.main_operations = {
-               "1": ("Playlists", 
-               "Your library, your songs/playlists are here.", 
-               self.BnuyDJ.audio_funct),
-               
-               "2": ("Keybinds ",
-               "Music player keybinds.", 
-               ui.binding_menu),
-               
-               "3": ("Settings ", 
-               "Your settings, this is where important functions are.", 
-               self.settings),
-               
-               "4": ("Stats & EasterEggs",
-                "Your statistics(such as time used)",
-                self.stats_display),
-                
-               "5": ("Add a new Song/Playlist",
-               "Add a Song/Playlist(online or a file system folder) here:3", 
-               self.BnuyPlaylistAdd.add_playlist),
-               
-               "e": ("Exit", 
-               "Closes BnuuyPlayer", 
-               self.exity),
-                }
+            "1": ("Playlists",
+                  "Your library, your songs/playlists are here.",
+                  self.BnuyDJ.audio_funct),
 
-        # note: structure should be 
+            "2": ("Keybinds ",
+                  "Music player keybinds.",
+                  ui.binding_menu),
+
+            "3": ("Settings ",
+                  "Your settings, this is where important functions are.",
+                  self.settings),
+
+            "4": ("Stats & EasterEggs",
+                  "Your statistics(such as time used)",
+                  self.stats_display),
+
+            "5": ("Add a new Song/Playlist",
+                  "Add a Song/Playlist(online or a file system folder) here:3",
+                  self.BnuyPlaylistAdd.add_playlist),
+
+            "e": ("Exit",
+                  "Closes BnuuyPlayer",
+                  self.exity),
+        }
+
+        # note: structure should be
         # name, hint, extra_info, found(which is True/False)
         # Extra info should only be shown when Found is True
         self.easter_eggs = {
-                "1": ("Rick Astley!?", 
-                      "Download a song, and BnuuyPlayer will never give you up ;3", 
-                      "Download 'Never gonna give you up' by Rick Astley",
-                      False),
+            "1": ("Rick Astley!?",
+                  "Download a song, and BnuuyPlayer will never give you up ;3",
+                  "Download 'Never gonna give you up' by Rick Astley",
+                  False),
 
-                "2": ("28 July 1914",
-                      "Take Me Out — Franz Ferdinand",
-                      "Download 'Take Me Out' by the band Franz Ferdinand",
-                      False),
+            "2": ("28 July 1914",
+                  "Take Me Out — Franz Ferdinand",
+                  "Download 'Take Me Out' by the band Franz Ferdinand",
+                  False),
 
-                "3": ("I glide across the board so freely, yet I am constrained to one tile color.",
-                      "Chessy?",
-                      "Enter ♝ or ♗ in the EasterEgg menu",
-                      False),
+            "3": ("I glide across the board so freely, yet I am constrained to one tile color.",
+                  "Chessy?",
+                  "Enter ♝ or ♗ in the EasterEgg menu",
+                  False),
 
-                "4": ("Lonely, I am one of the smallest matters. Together, I can span unimaginable distances. What am I?",
-                      "At a close enough scale, everything i make up is indistinguishable.",
-                      "Enter atom in the EasterEgg menu",
-                      False),
+            "4": ("Lonely, I am one of the smallest matters. Together, I can span unimaginable distances. What am I?",
+                  "At a close enough scale, everything i make up is indistinguishable.",
+                  "Enter atom in the EasterEgg menu",
+                  False),
 
-                "5": ("Come in, Cooper. Do you copy? Forget about Freeman. We're abandoning the base.",
-                      "Half Life is so peak:3",
-                      "Download 'Forget About Freeman'",
-                      False),
+            "5": ("Come in, Cooper. Do you copy? Forget about Freeman. We're abandoning the base.",
+                  "Half Life is so peak:3",
+                  "Download 'Forget About Freeman'",
+                  False),
 
-                "6": ("meow",
-                      "meow",
-                      "meow",
-                      False),
+            "6": ("meow",
+                  "meow",
+                  "meow",
+                  False),
 
-                "7": ("proto:3",
-                      "beepbeepbeep",
-                      "Enter 'proto' or 'toaster' at the easter egg menu!:3",
-                      False),
+            "7": ("proto:3",
+                  "beepbeepbeep",
+                  "Enter 'proto' or 'toaster' at the easter egg menu!:3",
+                  False),
 
-                "8": ("Say my name.",
-                      "No more half-measures.",
-                      "Say 'Walter white' at the easter egg menu",
-                      False)
-                }
-
+            "8": ("Say my name.",
+                  "No more half-measures.",
+                  "Say 'Walter white' at the easter egg menu",
+                  False)
+        }
 
         """METHOD CALLS """
         self.bnuuyplayer_db_create()
@@ -270,35 +277,41 @@ l cycle-values loop-file inf no"""
         self.data = self.curr_bun_state("return")
         bnuuyplayer_state(db_ref, self.data)
         self.start_code()
-    
+
     """DB path gen"""
 
     def home_path(self):
         if os.path.isdir("/storage/emulated/0/"):
             path = "/storage/emulated/0/BnuuyPlayer_Database"
         else:
-            path = os.path.join(os.path.expanduser('~'), "BnuuyPlayer_Database")
+            path = os.path.join(
+                os.path.expanduser('~'),
+                "BnuuyPlayer_Database")
         return path
-    
+
     """DB Library key generator"""
     # Use this when adding to the user's library!!
+
     def next_key_resolve(self):
-        return max(self.song_paths, default=0)+1 
+        return max(self.song_paths, default=0) + 1
 
     """Saved DB path"""
     # This ensures that a user entered path stays persistent.
+
     def db_path(self):
         import json
         path = os.path.join(self.home_path(), "DO_NOT_DELETE.json")
-        if not os.path.isfile(path): return
+        if not os.path.isfile(path):
+            return
 
         try:
             with open(path) as f:
                 saved_path = json.load(f)
 
         except (json.JSONDecodeError, FileNotFoundError):
-            ui.special_exception(f"DO_NOT_DELETE.json is missing/corrupted, meaning BnuuyPlayer is no longer linked with your library")
-            print("If you deleted it, maybe dont delete DO_NOT_DELETE.json QwQ") 
+            ui.special_exception(
+                f"DO_NOT_DELETE.json is missing/corrupted, meaning BnuuyPlayer is no longer linked with your library")
+            print("If you deleted it, maybe dont delete DO_NOT_DELETE.json QwQ")
             print("To fix this, simply go to settings, change Bnuuy database location, and re-enter the last path!:3")
             return
 
@@ -306,10 +319,13 @@ l cycle-values loop-file inf no"""
             ui.special_exception(f"An unknown error occurred!\n\n{e}")
             return
 
-        if self.bnuy_path == saved_path: return
+        if self.bnuy_path == saved_path:
+            return
         if not os.path.isdir(saved_path):
-            ui.special_exception("The path to your selected database location seems to be unlinked! :(")
-            print("To fix this, simply find the new folder path and re-enter it at settings.")
+            ui.special_exception(
+                "The path to your selected database location seems to be unlinked! :(")
+            print(
+                "To fix this, simply find the new folder path and re-enter it at settings.")
             return
         self.bnuy_path = saved_path
         self.hist_path = os.path.join(self.bnuy_path, "BnuyPlayerHist.json")
@@ -317,28 +333,31 @@ l cycle-values loop-file inf no"""
         self.hist_backup2 = os.path.join(self.bnuy_path, "BnuyBackup2.json")
         self.keybind_dir = os.path.join(self.bnuy_path, "bnuybinds.conf")
 
-
     """BnuuyPlayer Folder dir create"""
     # This creates the folder that contains bnuuyplayer's db
+
     def bnuuyplayer_db_create(self):
-        if not os.path.isdir(self.bnuy_path) and not os.path.isfile(self.bnuy_path):
+        if not os.path.isdir(
+                self.bnuy_path) and not os.path.isfile(self.bnuy_path):
             try:
                 os.makedirs(self.bnuy_path)
             except PermissionError:
                 print("""
 Aborting...
-BnuuyPlayer has no permission to write files! 
+BnuuyPlayer has no permission to write files!
 If you are on termux,
 Enter: termux-setup-storage""")
                 sys.exit()
             except OSError as e:
-                ui.special_exception(f"An unknown error occurred! Message below.\n\n{e}")
+                ui.special_exception(
+                    f"An unknown error occurred! Message below.\n\n{e}")
 
     """CTRL C exit .self backup"""
 
     def curr_bun_state(self, mode):
         data = self
-        if mode == "return": return data
+        if mode == "return":
+            return data
 
     #### BNUUYPLAYER TIME USED COUNTER ####
 
@@ -351,16 +370,17 @@ Enter: termux-setup-storage""")
 
     def time_playing_counter(self):
         while True:
-            self.time_playing += 1 
+            self.time_playing += 1
             time.sleep(1)
-            if self.stop_playing_counter is True: break
-
+            if self.stop_playing_counter is True:
+                break
 
     #### KEYBIND CREATOR ####
 
     """Creates keybind .conf file"""
     # checks if keybinds dont exist
     # if they dont exist bnuybinds is written as a new file
+
     def keybind_creator(self):
         try:
             if not os.path.exists(self.keybind_dir):
@@ -370,16 +390,16 @@ Enter: termux-setup-storage""")
             with open(self.keybind_dir, "w") as f:
                 f.write(self.bnuybinds)
 
-
     #### INITIALIZER ####
 
     # Checks if user passed through setup, sets to True when called
+
     def initializer(self):
         if not self.initialized:
             self.initialized = True
 
-
     ############# XTRA METHODS #############
+
     def text_egg_check(self, text):
         if text.lower() == "♝" or text.lower() == "♗":
             self.easter_egg_save("3")
@@ -404,15 +424,16 @@ Enter: termux-setup-storage""")
             self.easter_egg_save("8")
             return True
 
-        else: 
+        else:
             return False
 
     def stats_display(self):
         while True:
             try:
-                
+
                 choice = ui.easter_egg_menu(self.easter_eggs)
-                if self.text_egg_check(choice): continue
+                if self.text_egg_check(choice):
+                    continue
 
                 match choice:
                     case "0": break
@@ -423,14 +444,11 @@ Enter: termux-setup-storage""")
 
                     case _: raise ValueError
 
-            except ValueError: 
+            except ValueError:
                 ui.general_exception()
                 continue
 
-
-
     ############# MAIN #############
-
 
     # Deprecated until further notice
     # This is being kept as it'll  be used sometime in the future, around early 2027
@@ -445,8 +463,8 @@ Enter: termux-setup-storage""")
     #ENDC = '\033[0m' # End of print
     #BOLD = '\033[1m' # Current Lyrics
 
-    #print(f"{colors.BOLD} text {colors.ENDC}")     # Example of how to print it
-
+    # print(f"{colors.BOLD} text {colors.ENDC}")     # Example of how to print
+    # it
 
     #def lrc_funct():
     #    ui.term_cleaner()
@@ -463,11 +481,12 @@ Enter: termux-setup-storage""")
 
     #### LIBRARY PRINTER ####
 
-    def lib_print(self, local_only=False, folder_only=False, suppress_print=False):
+    def lib_print(self, local_only=False, folder_only=False,
+                  suppress_print=False):
         # note: i could compress a bunch of this method into dict comprehensions
         # but dict comprehensions are for cowards
         local_countr = 0
-        stream_countr = 0 
+        stream_countr = 0
         full_countr = 0
 
         local_dict = {}
@@ -494,7 +513,7 @@ Enter: termux-setup-storage""")
                 local_dict[num] = tupl
 
             else:
-                stream_countr += 1 
+                stream_countr += 1
                 stream_dict[num] = tupl
 
             full_countr += 1
@@ -509,23 +528,30 @@ Enter: termux-setup-storage""")
         self.song_paths = full_dict
 
         #### DISPLAY DICT ####
-        # This compiles the keys from self.song_paths into a clean architecture.
+        # This compiles the keys from self.song_paths into a clean
+        # architecture.
         display_keys = {}
         folder_cache = {}
 
         for key, tupl in self.song_paths.items():
 
             # I used this method to keep them temporarily separate.
-            if bnuyfolder.bnuuyfolder_check(tupl): 
-                folder_cache[len(folder_cache)+1] = (key, True)
+            if bnuyfolder.bnuuyfolder_check(tupl):
+                folder_cache[len(folder_cache) + 1] = (key, True)
             else:
                 # filters out streamed entries when local_only is true
-                if tupl[2] and local_only or folder_only: continue
+                if tupl[2] and local_only or folder_only:
+                    continue
 
-                display_keys[len(display_keys)+1] = (key, False)
+                display_keys[len(display_keys) + 1] = (key, False)
 
         # This ensures that folders are always after flat playlists
-        folder_keys = {i: v for i, v in enumerate(folder_cache.values(), start=len(display_keys)+1)}
+        folder_keys = {
+            i: v for i,
+            v in enumerate(
+                folder_cache.values(),
+                start=len(display_keys) +
+                1)}
         display_keys = display_keys | folder_keys
 
         #### Playlist printer ####
@@ -537,7 +563,8 @@ Enter: termux-setup-storage""")
             key = None
             for key, values in display_keys.items():
 
-                if values[1]: break # values[1] is true if the key is for a folder
+                if values[1]:
+                    break  # values[1] is true if the key is for a folder
                 # we can break upon detection of a folder as theyre sorted and not random.
                 # Although this is unnecessary, its a small performance gain
 
@@ -580,7 +607,7 @@ Enter: termux-setup-storage""")
             "full_countr": full_countr,
             "stream_countr": stream_countr,
             "local_countr": local_countr,
-            }
+        }
 
         return print_results
 
@@ -595,9 +622,11 @@ Enter: termux-setup-storage""")
 
                 selection = ui.move_file_menu()
 
-                if selection == 0: break 
+                if selection == 0:
+                    break
 
-                if bnuyfolder.bnuuyfolder_check(library[display_keys[selection][0]]):
+                if bnuyfolder.bnuuyfolder_check(
+                        library[display_keys[selection][0]]):
                     raise ValueError
 
                 _, dest_path, is_stream, _ = library[display_keys[selection][0]]
@@ -608,25 +637,31 @@ Enter: termux-setup-storage""")
 
                 confirm = ui.confirm(path, dest_path)
                 if confirm == 1:
-                    lrc_file = f"{os.path.basename(os.path.splitext(path)[0])}.lrc"
+                    lrc_file = f"{
+                        os.path.basename(
+                            os.path.splitext(path)[0])}.lrc"
                     lrc_path = os.path.join(os.path.dirname(path), lrc_file)
                     if os.path.isfile(lrc_path):
                         try:
                             shutil.move(lrc_path, dest_path)
                         except shutil.Error:
-                            ui.general_exception("Lyric file already exists in that directory:( skipping..")
+                            ui.general_exception(
+                                "Lyric file already exists in that directory:( skipping..")
                             continue
                     try:
                         shutil.move(path, dest_path)
                     except shutil.Error:
-                        ui.general_exception("File already exists in that directory :( Canceling..")
+                        ui.general_exception(
+                            "File already exists in that directory :( Canceling..")
                         continue
 
                     print("Successfully moved file!")
 
-                elif confirm == 0: break 
+                elif confirm == 0:
+                    break
 
-                else: raise ValueError
+                else:
+                    raise ValueError
 
             except (ValueError, KeyError):
                 ui.general_exception()
@@ -648,9 +683,11 @@ Enter: termux-setup-storage""")
                 """Like a song"""
                 success = False
                 for _, tupl in self.song_paths.items():
-                    if bnuyfolder.bnuuyfolder_check(tupl) and tupl[0] == "liked_songs":
-                        if path in tupl: 
-                            ui.special_exception("Song already liked! aborting..")
+                    if bnuyfolder.bnuuyfolder_check(
+                            tupl) and tupl[0] == "liked_songs":
+                        if path in tupl:
+                            ui.special_exception(
+                                "Song already liked! aborting..")
                             return
                         tupl.append(path)
                         self.BnuyFileManager.saver()
@@ -658,7 +695,8 @@ Enter: termux-setup-storage""")
                         success = True
                         break
 
-                    else: success = False
+                    else:
+                        success = False
 
                 if success is False:
                     print("Song not found! :( aborting..")
@@ -668,16 +706,19 @@ Enter: termux-setup-storage""")
                 """Delete song"""
                 check = os.path.isfile(path)
 
-                if check is False: 
-                    print("Cannot delete streamed songs from disk or folders from this menu.")
+                if check is False:
+                    print(
+                        "Cannot delete streamed songs from disk or folders from this menu.")
                     return
                 else:
                     while True:
                         confirm = ui.cmd_handler_del_confirm(path)
 
-                        if confirm == "1": break 
+                        if confirm == "1":
+                            break
 
-                        elif confirm == "0": return 
+                        elif confirm == "0":
+                            return
 
                         else:
                             ui.general_exception("Enter 1 or 0")
@@ -685,7 +726,9 @@ Enter: termux-setup-storage""")
 
                     os.remove(path)
                     # This deletes the .lrc file.
-                    lrc_file = f"{os.path.basename(os.path.splitext(path)[0])}.lrc"
+                    lrc_file = f"{
+                        os.path.basename(
+                            os.path.splitext(path)[0])}.lrc"
                     for root, dirs, files in os.walk(os.path.dirname(path)):
                         if lrc_file in files:
                             os.remove(os.path.join(root, lrc_file))
@@ -732,23 +775,29 @@ Enter: termux-setup-storage""")
                                 err = True
                                 message = "Cannot copy to streamed entries!"
 
-                            else: 
+                            else:
                                 _, dest_path, is_stream, _ = selected
 
                             if err:
                                 ui.special_exception(message)
                                 continue
 
-                            # This attempts to copy the .lrc file into the dest.
-                            lrc_file = f"{os.path.basename(os.path.splitext(path)[0])}.lrc"
-                            lrc_path = os.path.join(os.path.dirname(path), lrc_file)
+                            # This attempts to copy the .lrc file into the
+                            # dest.
+                            lrc_file = f"{
+                                os.path.basename(
+                                    os.path.splitext(path)[0])}.lrc"
+                            lrc_path = os.path.join(
+                                os.path.dirname(path), lrc_file)
                             if os.path.isfile(lrc_path):
-                                try: shutil.copy(lrc_path, dest_path)
+                                try:
+                                    shutil.copy(lrc_path, dest_path)
 
-                                except shutil.SameFileError: pass
+                                except shutil.SameFileError:
+                                    pass
 
                             # Copies the selected file aswell.
-                            try: 
+                            try:
 
                                 shutil.copy(path, dest_path)
                                 ui.term_cleaner()
@@ -756,7 +805,8 @@ Enter: termux-setup-storage""")
                                 continue
 
                             except shutil.SameFileError:
-                                ui.special_exception("File already exists in the destination!")
+                                ui.special_exception(
+                                    "File already exists in the destination!")
                                 continue
 
                     except ValueError:
@@ -775,19 +825,21 @@ Enter: termux-setup-storage""")
                 ui.general_exception()
                 return
 
-
     #### LYRIC DOWNLOAD ####
 
     def lrc_dl(self):
         if not self.mutagen_installed:
-            ui.special_exception("Mutagen isn't installed! please run pip install mutagen, or read bnuuyplayer's README.md for details")
+            ui.special_exception(
+                "Mutagen isn't installed! please run pip install mutagen, or read bnuuyplayer's README.md for details")
             return
 
         while True:
             confirm = ui.lrc_dl_confirm()
 
-            if confirm == "1": break
-            elif confirm == "0": return
+            if confirm == "1":
+                break
+            elif confirm == "0":
+                return
             else:
                 ui.general_exception("Select 1 or 0.")
                 continue
@@ -795,35 +847,41 @@ Enter: termux-setup-storage""")
         # Downloads lyrics for existing songs
         for _, tupl in self.song_paths.items():
             # folder check
-            if bnuyfolder.bnuuyfolder_check(tupl): continue
+            if bnuyfolder.bnuuyfolder_check(tupl):
+                continue
             # is stream check
-            if tupl[2]: continue
+            if tupl[2]:
+                continue
 
             name, path, _, _, = tupl
 
             print(f"Beginning download for {os.path.basename(path)}")
 
-            d = {"status": "finished", 
+            d = {"status": "finished",
                  "filename": "placeholder",
                  "filepath": path,
-                 "info_dict": {},}
+                 "info_dict": {}, }
             if not os.path.isdir(path):
-                ui.special_exception("A playlist's folder was deleted or is missing, aborting!")
+                ui.special_exception(
+                    "A playlist's folder was deleted or is missing, aborting!")
                 print(f"Missing the folder) {os.path.basename(path)}")
                 continue
 
             for file in os.listdir(path):
 
-                if os.path.isdir(os.path.join(path, file)): continue
+                if os.path.isdir(os.path.join(path, file)):
+                    continue
 
                 try:
-                    metadata = mutagen.File(os.path.join(path, file), easy=True)
+                    metadata = mutagen.File(
+                        os.path.join(path, file), easy=True)
                 except mutagen.MutagenError as e:
                     print(f"An unknown error occurred!) {e}")
                     continue
 
                 if metadata is None:
-                    print(f"{file} is unsupported, or had no metadata! skipping..")
+                    print(
+                        f"{file} is unsupported, or had no metadata! skipping..")
                     continue
 
                 artist = metadata.get("artist")
@@ -832,34 +890,36 @@ Enter: termux-setup-storage""")
                 fallback = False
 
                 err = False
-                if artist is None or title is None or album is None: err = True
+                if artist is None or title is None or album is None:
+                    err = True
 
-                elif len(artist) == 0 or len(album) == 0: err = True
+                elif len(artist) == 0 or len(album) == 0:
+                    err = True
 
                 if err:
                     print(f"{file} had missing metadata, cannot download!")
-                    continue 
+                    continue
                 if len(title) == 0:
                     print("No title metadata :(, fallbacking to filename.")
                     title = os.path.splitext(file)[0]
                     fallback = True
 
-
                 artist = artist[0]
-                if fallback: pass
-                else: title = title[0]
+                if fallback:
+                    pass
+                else:
+                    title = title[0]
                 album = album[0]
 
                 duration = metadata.info.length
                 # spoofs the info dict for yt dlp hook
-                d["info_dict"] = {"artist": artist, 
+                d["info_dict"] = {"artist": artist,
                                   "title": title,
                                   "album": album,
-                                  "duration": duration,}
+                                  "duration": duration, }
                 d["filename"] = os.path.join(path, file)
 
                 self.yt_hook(d)
-
 
     ############# MAIN FOLDER/SETUP AREA #############
 
@@ -896,7 +956,8 @@ Enter: termux-setup-storage""")
             duration = info_dict.get("duration")
             album = info_dict.get("album")
 
-            if artist is None: artist = info_dict.get("uploader")
+            if artist is None:
+                artist = info_dict.get("uploader")
             try:
                 if "never gonna give you up" in title.lower():
                     self.easter_egg_save("1")
@@ -906,28 +967,28 @@ Enter: termux-setup-storage""")
 
                 elif "forget about freeman" in title.lower():
                     self.easter_egg_save("5")
-            except AttributeError: pass
+            except AttributeError:
+                pass
 
             try:
                 """lrclib lookup"""
                 from urllib.parse import urlencode
-                params = urlencode({"artist_name": artist, 
+                params = urlencode({"artist_name": artist,
                                     "track_name": title,
                                     "album_name": album,
-                                    "duration": duration,})
+                                    "duration": duration, })
                 lrclib_url = "https://lrclib.net/api/get?%s" % params
 
                 lrc_get = requests.get(lrclib_url, timeout=10)
 
-            except(requests.exceptions.Timeout):
+            except (requests.exceptions.Timeout):
                 print("\nTimeout!")
                 return
 
-            except(requests.exceptions.ConnectionError):
+            except (requests.exceptions.ConnectionError):
                 print("\nInternet connection dropped, unable to download!")
                 return
 
-            
             # if lrclib responds successfully, attempt to find lyrics
             if lrc_get.status_code == 200:
                 data = lrc_get.json()
@@ -936,7 +997,6 @@ Enter: termux-setup-storage""")
                 lyricplain = data.get('plainLyrics')
 
                 print("\n\nAttempting to fetch lyrics..")
-
 
                 # Attempt to find lrc format, if none are found inform and quit
                 if lyricsync is not None:
@@ -951,16 +1011,21 @@ Enter: termux-setup-storage""")
 
                 # extracts basename, then uses splitext to split into [name, ext]
                 # and uses [0] to select the name
-                base_name = os.path.splitext(os.path.basename(d["filename"]))[0]
+                base_name = os.path.splitext(
+                    os.path.basename(d["filename"]))[0]
 
                 # combines the processed dir with processed basename and .lrc
-                lrc_path = os.path.join(os.path.dirname(d["filename"]), f"{base_name}.lrc")
+                lrc_path = os.path.join(
+                    os.path.dirname(
+                        d["filename"]),
+                    f"{base_name}.lrc")
 
                 try:
                     with open(lrc_path, "w") as f:
                         f.write(lyric)
                 except OSError as e:
-                    print(f"\nEncountered a OS Error when writing the .lrc! ▼\n\n{e}")
+                    print(
+                        f"\nEncountered a OS Error when writing the .lrc! ▼\n\n{e}")
                     return
 
                 except PermissionError:
@@ -973,7 +1038,9 @@ Enter: termux-setup-storage""")
                 print("\nNo lyrics found!")
 
             else:
-                print(f"\nUnknown error) {lrc_get.status_code} \n Lyrics not saved.")
+                print(
+                    f"\nUnknown error) {
+                        lrc_get.status_code} \n Lyrics not saved.")
 
     #### SITE WHITELIST HANDLER ####
 
@@ -985,13 +1052,15 @@ Enter: termux-setup-storage""")
 
                 select = ui.whitelist_site_main()
 
-                if select == 0: return
-                
+                if select == 0:
+                    return
+
                 elif select == 1:
                     add_site = ui.enter_new_site()
                     print("Checking if the site exists...")
 
-                    if add_site == "0": continue
+                    if add_site == "0":
+                        continue
 
                     try:
                         requests.get(f"https://{add_site}", timeout=10)
@@ -1003,9 +1072,9 @@ Enter: termux-setup-storage""")
                         print("Aborting! no internet connection :(")
                         continue
 
-                    except (requests.exceptions.InvalidHeader, 
-                            requests.exceptions.InvalidURL, 
-                            requests.exceptions.InvalidSchema, 
+                    except (requests.exceptions.InvalidHeader,
+                            requests.exceptions.InvalidURL,
+                            requests.exceptions.InvalidSchema,
                             requests.exceptions.MissingSchema) as e:
 
                         print("The site name was invalid, or a bad URL was inputted!")
@@ -1014,7 +1083,8 @@ Enter: termux-setup-storage""")
                     except requests.exceptions.HTTPError as e:
                         print(f"A HTTPError occurred! \nError message) {e}")
 
-                    else: print("Site is valid! continuing 𐔌՞. .՞𐦯")
+                    else:
+                        print("Site is valid! continuing 𐔌՞. .՞𐦯")
 
                     # this is required as its converted to a list every restart
                     # because JSON doesnt have sets
@@ -1043,8 +1113,9 @@ Enter: termux-setup-storage""")
                             confirm_loop = False
                             break
 
-                        elif del_site not in range(1,len(self.valid_domains)+1):
-                            ui.general_exception(f"Select 0-{len(self.valid_domains)}")
+                        elif del_site not in range(1, len(self.valid_domains) + 1):
+                            ui.general_exception(
+                                f"Select 0-{len(self.valid_domains)}")
                             continue
                         # breaks if no errs or matches occur
                         break
@@ -1052,7 +1123,8 @@ Enter: termux-setup-storage""")
                     while confirm_loop:
                         confirm = ui.del_site_confirm(domains, del_site)
 
-                        if confirm == "1": break
+                        if confirm == "1":
+                            break
 
                         elif confirm == "0":
                             confirm_loop = False
@@ -1062,12 +1134,12 @@ Enter: termux-setup-storage""")
                             ui.general_exception("Select 0 or 1.")
                             continue
 
-                    if confirm_loop is False: continue
+                    if confirm_loop is False:
+                        continue
 
                     self.valid_domains.remove(domains[del_site])
                     self.BnuyFileManager.saver()
                     print("Successfully deleted site from whitelist!")
-
 
             except ValueError:
                 ui.general_exception()
@@ -1090,12 +1162,12 @@ Enter: termux-setup-storage""")
     def metadata_handler(self, playlist, mode):
         ui.term_cleaner()
         tags = {
-                "artist": "artist",
-                "album": "album",
-                "date": "date",
-                "title": "title",
-                "genre": "genre",
-                }
+            "artist": "artist",
+            "album": "album",
+            "date": "date",
+            "title": "title",
+            "genre": "genre",
+        }
         if mode == "add":
             enter_msg = "Enter the song you'd like to (re)write and the tag."
             data_choice = "Please enter the new data."
@@ -1109,7 +1181,8 @@ Enter: termux-setup-storage""")
                 print(f"""___________________________________________________________/\\
 ▼ Songs in {playlist[0]} ▼
 """)
-                metadata = self.BnuySearchManagement.metadata_helper(playlist[1])
+                metadata = self.BnuySearchManagement.metadata_helper(
+                    playlist[1])
                 if len(metadata) == 0:
                     ui.special_exception("No songs in this playlist! :(")
                     continue
@@ -1118,48 +1191,57 @@ Enter: termux-setup-storage""")
 
                 values = write_select.split()
 
-                if write_select == "0": return
+                if write_select == "0":
+                    return
 
-                elif len(values) != 2: raise ValueError
+                elif len(values) != 2:
+                    raise ValueError
 
-                elif int(values[0]) not in range(1, len(metadata)+1):
-                    ui.general_exception(f"Select a song from 1-{len(metadata)}")
+                elif int(values[0]) not in range(1, len(metadata) + 1):
+                    ui.general_exception(
+                        f"Select a song from 1-{len(metadata)}")
                     continue
 
-                else: num, tag = values
+                else:
+                    num, tag = values
 
                 selected_tag = tags.get(tag)
 
                 if selected_tag is None:
-                    ui.special_exception("Invalid tag, please enter a valid one.")
+                    ui.special_exception(
+                        "Invalid tag, please enter a valid one.")
                     continue
 
                 data = metadata.get(int(num))
 
                 true = True
                 retry = False
-                try: 
+                try:
                     curr_tag = data[f"{tag}"]
                 except KeyError:
                     # KeyError occurs when no metadata exists
                     curr_tag = "No data available :("
 
-
                 while true:
 
-                    new_data = ui.enter_new_metadata(data_choice, tag, curr_tag)
+                    new_data = ui.enter_new_metadata(
+                        data_choice, tag, curr_tag)
 
-                    if new_data == "0": 
+                    if new_data == "0":
                         true = False
                         retry = True
                         break
-                    else: break
+                    else:
+                        break
 
-                if retry: continue
+                if retry:
+                    continue
 
-                if curr_tag != "No data available :(": old_data = data[f"{tag}"]
+                if curr_tag != "No data available :(":
+                    old_data = data[f"{tag}"]
 
-                else: old_data = "No data :("
+                else:
+                    old_data = "No data :("
 
                 if mode == "add":
                     data[f"{tag}"] = [new_data]
@@ -1172,13 +1254,13 @@ Enter: termux-setup-storage""")
                 try:
                     data.save()
                 except (mutagen.MutagenError, OSError, PermissionError) as e:
-                    ui.special_exception("An unknown error occurred! Full message may be below.")
+                    ui.special_exception(
+                        "An unknown error occurred! Full message may be below.")
                     print(e)
                 if mode == "add":
                     print(f"Successfully changed {old_data} to {new_data}!")
                 else:
                     print(f"Successfully deleted {old_data}!")
-
 
             except ValueError:
                 ui.general_exception()
@@ -1189,9 +1271,9 @@ Enter: termux-setup-storage""")
     def metadata_settings(self):
         ui.term_cleaner()
         metadata_methods = {
-                "add": self.metadata_handler,
-                "del": self.metadata_handler,
-                }
+            "add": self.metadata_handler,
+            "del": self.metadata_handler,
+        }
 
         while True:
             try:
@@ -1209,16 +1291,16 @@ Enter: termux-setup-storage""")
                     ui.special_exception("""
 Please select the playlist, then what setting you'd like in the same message seperated by a space.""")
                     continue
-                
+
                 num = int(selected_stuff[0])
                 cmd = selected_stuff[1]
 
                 playlist = self.song_paths[keys[num][0]]
                 if bnuyfolder.bnuuyfolder_check(playlist):
-                    ui.special_exception("Please select a playlist and not a folder!")
+                    ui.special_exception(
+                        "Please select a playlist and not a folder!")
                     continue
                 metadata_methods[cmd](playlist, cmd)
-
 
             except (KeyError, ValueError):
                 ui.general_exception("Select a playlist then the command.")
@@ -1230,13 +1312,18 @@ Please select the playlist, then what setting you'd like in the same message sep
         while True:
             try:
 
-                if self.video: state = "Activated"
-                else: state = "Deactivated"
+                if self.video:
+                    state = "Activated"
+                else:
+                    state = "Deactivated"
 
-                if self.gapless_toggle: gap_state = "Activated"
-                else: gap_state = "Deactivated"
+                if self.gapless_toggle:
+                    gap_state = "Activated"
+                else:
+                    gap_state = "Deactivated"
 
-                choice = ui.main_settings(self.shuffl[1], self.ram_allocated, gap_state, state,)
+                choice = ui.main_settings(
+                    self.shuffl[1], self.ram_allocated, gap_state, state,)
 
                 if choice == 0:
                     self.BnuyFileManager.saver()
@@ -1258,8 +1345,10 @@ Please select the playlist, then what setting you'd like in the same message sep
                     while allocation_loop:
                         ram = ui.max_ram(self.ram_allocated)
 
-                        if ram == "0": break
-                        else: ram = int(ram)
+                        if ram == "0":
+                            break
+                        else:
+                            ram = int(ram)
 
                         self.ram_allocated = ram
                         print(f"Successfully allocated {ram}mB!")
@@ -1283,38 +1372,43 @@ Please select the playlist, then what setting you'd like in the same message sep
 
                     while True:
                         new_path = ui.db_location_enter(self.bnuy_path)
-                        if new_path == "0": 
+                        if new_path == "0":
                             back = True
                             break
 
                         if not os.path.isdir(new_path):
-                            ui.special_exception(f"Invalid path, no folder named {os.path.basename(new_path)} exists!")
-                            continue 
+                            ui.special_exception(
+                                f"Invalid path, no folder named {
+                                    os.path.basename(new_path)} exists!")
+                            continue
 
                         break
 
-                    if back is True: continue
+                    if back is True:
+                        continue
 
                     while True:
                         try:
 
                             confirm = ui.confirm(self.bnuy_path, new_path)
 
-                            if confirm == 1: 
+                            if confirm == 1:
                                 """Confirmed"""
-                                break 
+                                break
                             elif confirm == 0:
                                 """Return"""
                                 back = True
                                 break
 
-                            else: raise ValueError
+                            else:
+                                raise ValueError
 
                         except ValueError:
                             ui.general_exception()
                             continue
 
-                    if back is True: continue
+                    if back is True:
+                        continue
 
                     self.BnuyFileManager.move_db(new_path)
 
@@ -1325,10 +1419,10 @@ Please select the playlist, then what setting you'd like in the same message sep
                 elif choice == 8:
                     """Metadata settings"""
                     if not self.mutagen_installed:
-                        ui.special_exception("Mutagen isn't installed! please run pip install mutagen, or read bnuuyplayer's README.md for details")
+                        ui.special_exception(
+                            "Mutagen isn't installed! please run pip install mutagen, or read bnuuyplayer's README.md for details")
                         continue
                     self.metadata_settings()
-
 
                 else:
                     raise KeyError
@@ -1367,7 +1461,6 @@ Please select the playlist, then what setting you'd like in the same message sep
 
     #### MAIN MENU ####
 
-
     def main_menu(self):
 
         self.BnuyFileManager.saver()
@@ -1398,7 +1491,8 @@ Please select the playlist, then what setting you'd like in the same message sep
 
                 name, _, function = self.main_operations[choice]
 
-                if name == "Exit": self.BnuyFileManager.saver()
+                if name == "Exit":
+                    self.BnuyFileManager.saver()
                 function()
 
             except KeyError:
@@ -1413,5 +1507,7 @@ Please select the playlist, then what setting you'd like in the same message sep
                 self.file_setup()
             else:
                 self.main_menu()
+
+
 def start():
     bnuystart = BnuuyPlayer(mutagen_installed, db_ref)
